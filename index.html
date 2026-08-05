@@ -156,6 +156,7 @@
 
   <!-- ============ FORM VIEW ============ -->
   <section id="view-form" class="view active">
+  <div id="assessment-form-wrap">
     <div class="card">
       <h2>Candidate / Employee Information</h2>
       <div class="row4">
@@ -210,8 +211,13 @@
       </div>
     </div>
 
-    <div id="success-banner" class="success-banner">Thank you, your responses have been submitted successfully. Our team will review this assessment as part of the selection process.</div>
     <button class="btn btn-gold" id="submit-btn" style="width:100%;padding:14px;font-size:15px;display:none;">Submit Assessment</button>
+  </div>
+
+  <div id="closing-card" class="card" style="display:none;text-align:center;padding:48px 24px;">
+    <h2 style="margin-bottom:10px;">Thank You</h2>
+    <p style="color:var(--muted);font-size:14.5px;max-width:480px;margin:0 auto;line-height:1.6;">Your responses have been submitted successfully. Our team will review this assessment as part of the selection process. You may now close this window.</p>
+  </div>
   </section>
 
   <!-- ============ DASHBOARD VIEW ============ -->
@@ -671,7 +677,16 @@ document.getElementById("q-back").addEventListener("click", ()=>{
 updateQNav();
 
 // ---------------- Submit handler ----------------
+// isSubmitting is a hard re-entrancy guard on top of disabling the button:
+// a candidate double-clicking Submit previously could — under certain
+// timing — fire the handler twice and create two separate database records
+// for the same person. Bailing out immediately if a submission is already
+// in flight, and permanently replacing the whole form with a closing
+// statement on success (rather than just re-enabling the same button),
+// closes that gap entirely.
+let isSubmitting = false;
 document.getElementById("submit-btn").addEventListener("click", async ()=>{
+  if(isSubmitting) return;
   const name = document.getElementById("f-name").value.trim();
   const gender = document.getElementById("f-gender").value;
   if(!name){ alert("Full name is required."); return; }
@@ -712,6 +727,7 @@ document.getElementById("submit-btn").addEventListener("click", async ()=>{
     valueScores, total,
   };
 
+  isSubmitting = true;
   const submitBtn = document.getElementById("submit-btn");
   submitBtn.disabled = true;
   try{
@@ -719,23 +735,16 @@ document.getElementById("submit-btn").addEventListener("click", async ()=>{
   }catch(err){
     alert("Failed to submit the assessment. Please check your internet connection and try again.");
     submitBtn.disabled = false;
+    isSubmitting = false;
     return;
   }
-  submitBtn.disabled = false;
 
-  document.getElementById("success-banner").style.display = "block";
-  form.reset();
-  document.getElementById("f-name").value = "";
-  document.getElementById("f-gender").value = "";
-  document.getElementById("f-role").value = "";
-  document.getElementById("f-email").value = "";
-  document.getElementById("f-assessor").value = "";
-  qCurrentPage = 0;
-  qDiv.querySelectorAll(".q-page").forEach(d=>{ d.style.display = (d.dataset.page === "0") ? "block" : "none"; });
-  updateQNav();
-  assessmentStartTime = new Date().toISOString();
+  // Success: permanently swap the form for a closing statement. The form is
+  // not just reset/re-shown, because leaving it interactive is exactly what
+  // allowed the duplicate-submission bug in the first place.
+  document.getElementById("assessment-form-wrap").style.display = "none";
+  document.getElementById("closing-card").style.display = "block";
   window.scrollTo({top:0, behavior:"smooth"});
-  setTimeout(()=>{ document.getElementById("success-banner").style.display = "none"; }, 6000);
 });
 
 // ---------------- Tabs ----------------
