@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,7 +28,7 @@
   .brand-logo{height:50px;width:auto;display:block;}
   header h1{margin:0;font-size:19px;letter-spacing:.3px;font-weight:700;color:#fff;}
   header p{margin:3px 0 0;font-size:11px;color:var(--gold);letter-spacing:.8px;text-transform:uppercase;}
-  #role-switch{display:none;font-size:12px;color:var(--gold);cursor:pointer;text-decoration:underline;}
+  #admin-login-link{font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline;}
   nav{display:none;gap:6px;background:var(--bg-deep);border-bottom:1px solid var(--border);padding:0 24px;position:sticky;top:0;z-index:20;flex-wrap:wrap;}
   nav button{border:none;background:none;padding:14px 18px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;font-family:inherit;}
   nav button.active{color:var(--gold);border-bottom-color:var(--gold);}
@@ -53,6 +53,7 @@
   input[type=text]::placeholder,input[type=email]::placeholder{color:var(--muted);}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  .row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;}
   .scale-table{border-collapse:collapse;margin:8px 0 20px;}
   .scale-table td{border:1px solid var(--border-soft);padding:8px 16px;text-align:center;font-size:13px;}
   .scale-table tr:first-child td{background:var(--card-alt);color:var(--gold);font-weight:600;}
@@ -108,7 +109,7 @@
   .vd-score{color:var(--muted);font-size:12.5px;margin-left:auto;}
   .vd-narrative{font-size:13px;color:var(--text);line-height:1.5;}
   #modal-questions{margin:8px 0 0;padding-left:18px;font-size:13px;line-height:1.7;}
-  @media (max-width:720px){.row2,.row3{grid-template-columns:1fr;}.flexcharts{grid-template-columns:1fr;}}
+  @media (max-width:720px){.row2,.row3,.row4{grid-template-columns:1fr;}.flexcharts{grid-template-columns:1fr;}}
   .mini-table{width:100%;border-collapse:collapse;margin-top:10px;}
   .mini-table th,.mini-table td{border:1px solid var(--border-soft);padding:6px 8px;font-size:12.5px;}
   .mini-table th{background:var(--card-alt);color:var(--gold);}
@@ -126,16 +127,15 @@
       <p>Internal Assessment Platform</p>
     </div>
   </div>
-  <div id="role-switch">Switch Role</div>
+  <div id="admin-login-link">Admin Login</div>
 </header>
 
 <div id="role-gate">
   <div class="card role-gate-card">
-    <h2>Selamat Datang</h2>
-    <p style="color:var(--muted);">Silakan pilih peran Anda untuk melanjutkan.</p>
+    <h2>Welcome</h2>
+    <p style="color:var(--muted);">Please start your assessment below.</p>
     <div class="role-gate-actions">
-      <button class="btn btn-gold" id="role-candidate">Saya Kandidat / Peserta</button>
-      <button class="btn btn-outline" id="role-admin">Admin / HR</button>
+      <button class="btn btn-gold" id="role-candidate" style="width:100%;">I'm a Candidate / Participant</button>
     </div>
     <div id="admin-passcode-box">
       <label>Enter Admin Access Code</label>
@@ -147,7 +147,7 @@
 </div>
 
 <nav>
-  <button class="tab-btn active" data-view="form">Isi Assessment</button>
+  <button class="tab-btn active" data-view="form">Take Assessment</button>
   <button class="tab-btn" data-view="dashboard">Admin Dashboard</button>
   <button class="tab-btn" data-view="about">Internal Guide</button>
 </nav>
@@ -157,11 +157,20 @@
   <!-- ============ FORM VIEW ============ -->
   <section id="view-form" class="view active">
     <div class="card">
-      <h2>Data Kandidat / Karyawan</h2>
-      <div class="row3">
-        <div><label>Nama Lengkap *</label><input type="text" id="f-name" placeholder="Nama"></div>
-        <div><label>Posisi yang Dilamar / Role</label><input type="text" id="f-role" placeholder="mis. HR Consultant"></div>
-        <div><label>Email (opsional)</label><input type="email" id="f-email" placeholder="nama@email.com"></div>
+      <h2>Candidate / Employee Information</h2>
+      <div class="row4">
+        <div><label>Full Name *</label><input type="text" id="f-name" placeholder="Name"></div>
+        <div>
+          <label>Gender *</label>
+          <select id="f-gender">
+            <option value="">Select...</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Prefer not to say">Prefer not to say</option>
+          </select>
+        </div>
+        <div><label>Position Applied / Role</label><input type="text" id="f-role" placeholder="e.g. HR Consultant"></div>
+        <div><label>Email (optional)</label><input type="email" id="f-email" placeholder="name@email.com"></div>
       </div>
       <div class="row2" id="admin-only-fields">
         <div>
@@ -177,14 +186,14 @@
     </div>
 
     <div class="card">
-      <h2>Kuesioner MIDAS DNA</h2>
-      <p style="color:var(--muted);font-size:13.5px;">Nilai seberapa sesuai tiap pernyataan dengan diri Anda secara jujur. Tidak ada jawaban benar/salah.</p>
+      <h2>MIDAS DNA Assessment</h2>
+      <p style="color:var(--muted);font-size:13.5px;">Rate how well each statement describes you, honestly. There are no right or wrong answers.</p>
       <table class="scale-table">
         <tr>
-          <td>Sangat Tidak Setuju</td>
-          <td>Tidak Setuju</td>
-          <td>Setuju</td>
-          <td>Sangat Setuju</td>
+          <td>Strongly Disagree</td>
+          <td>Disagree</td>
+          <td>Agree</td>
+          <td>Strongly Agree</td>
         </tr>
         <tr>
           <td><b>1</b></td>
@@ -194,10 +203,15 @@
         </tr>
       </table>
       <div id="questionnaire"></div>
+      <div id="q-pagination" style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;">
+        <button class="btn btn-outline btn-sm" id="q-back" style="display:none;">Back</button>
+        <span id="q-progress" style="color:var(--muted);font-size:13px;"></span>
+        <button class="btn btn-gold btn-sm" id="q-next">Next</button>
+      </div>
     </div>
 
-    <div id="success-banner" class="success-banner">Terima kasih, jawaban Anda telah berhasil dikirim. Tim kami akan meninjau hasil assessment ini sebagai bagian dari proses seleksi.</div>
-    <button class="btn btn-gold" id="submit-btn" style="width:100%;padding:14px;font-size:15px;">Submit Assessment</button>
+    <div id="success-banner" class="success-banner">Thank you, your responses have been submitted successfully. Our team will review this assessment as part of the selection process.</div>
+    <button class="btn btn-gold" id="submit-btn" style="width:100%;padding:14px;font-size:15px;display:none;">Submit Assessment</button>
   </section>
 
   <!-- ============ DASHBOARD VIEW ============ -->
@@ -239,7 +253,7 @@
       <div style="overflow-x:auto;">
         <table class="datatable" id="data-table">
           <thead>
-            <tr><th>Name</th><th>Role</th><th>Stage</th><th>Date</th><th>Total Score</th><th>Recommendation</th><th>Action</th></tr>
+            <tr><th>Name</th><th>Gender</th><th>Role</th><th>Stage</th><th>Date</th><th>Total Score</th><th>Recommendation</th><th>Action</th></tr>
           </thead>
           <tbody id="table-body"></tbody>
         </table>
@@ -265,8 +279,8 @@
         <thead><tr><th>Total Score</th><th>Category</th><th>Recommendation</th></tr></thead>
         <tbody>
           <tr><td>85–100</td><td>Very Strong</td><td>Proceed to the next stage with confidence.</td></tr>
-          <tr><td>65–84</td><td>Good</td><td>Proceed, confirm the lowest-scoring value via behavioral interview.</td></tr>
-          <tr><td>45–64</td><td>Mixed</td><td>Explore flagged values further before proceeding.</td></tr>
+          <tr><td>75–84</td><td>Good</td><td>Proceed, confirm the lowest-scoring value via behavioral interview.</td></tr>
+          <tr><td>45–74</td><td>Mixed</td><td>Explore flagged values further before proceeding.</td></tr>
           <tr><td>&lt; 45</td><td>Not Aligned</td><td>Reconsider; likely a weaker fit with MIDAS culture.</td></tr>
         </tbody>
       </table>
@@ -533,7 +547,7 @@ function perValueCategory(score){
 // Total score range: 25-100 (5 values x 5-20 each).
 function totalCategory(score){
   if(score>=85) return {label:"Very Strong", cls:"badge-green"};
-  if(score>=65) return {label:"Good", cls:"badge-blue"};
+  if(score>=75) return {label:"Good", cls:"badge-blue"};
   if(score>=45) return {label:"Mixed", cls:"badge-amber"};
   return {label:"Not Aligned", cls:"badge-red"};
 }
@@ -581,37 +595,95 @@ VALUES.forEach((v, vi)=>{
 });
 FLAT_ITEMS = shuffle(FLAT_ITEMS);
 
-const table = document.createElement("table");
-table.className = "qtable";
-table.innerHTML = `<thead>
-  <tr class="qnums"><th style="width:auto;text-align:left;">Pernyataan (gunakan skala 1–4 di atas)</th><th>1</th><th>2</th><th>3</th><th>4</th></tr>
-</thead>`;
-const tbody = document.createElement("tbody");
-FLAT_ITEMS.forEach((item, idx)=>{
-  const tr = document.createElement("tr");
-  const name = `q_${item.vi}_${item.ii}`;
-  let radios = "";
-  for(let s=1;s<=4;s++){
-    radios += `<td class="qradio"><input type="radio" name="${name}" value="${s}" required></td>`;
+// Statements are shown 5 at a time (one "section" per page) instead of all
+// 25 at once, since a single long list read as too dense. Each section must
+// be fully answered before the respondent can move to the next one, and the
+// Submit button only appears on the final section.
+const Q_PAGE_SIZE = 5;
+const Q_TOTAL_PAGES = Math.ceil(FLAT_ITEMS.length / Q_PAGE_SIZE);
+let qCurrentPage = 0;
+
+for(let p=0; p<Q_TOTAL_PAGES; p++){
+  const pageDiv = document.createElement("div");
+  pageDiv.className = "q-page";
+  pageDiv.dataset.page = String(p);
+  pageDiv.style.display = p === 0 ? "block" : "none";
+
+  const table = document.createElement("table");
+  table.className = "qtable";
+  table.innerHTML = `<thead>
+    <tr class="qnums"><th style="width:auto;text-align:left;">Statement (use the 1–4 scale above)</th><th>1</th><th>2</th><th>3</th><th>4</th></tr>
+  </thead>`;
+  const tbody = document.createElement("tbody");
+  const startIdx = p * Q_PAGE_SIZE;
+  FLAT_ITEMS.slice(startIdx, startIdx + Q_PAGE_SIZE).forEach((item, ci)=>{
+    const idx = startIdx + ci;
+    const tr = document.createElement("tr");
+    const name = `q_${item.vi}_${item.ii}`;
+    let radios = "";
+    for(let s=1;s<=4;s++){
+      radios += `<td class="qradio"><input type="radio" name="${name}" value="${s}" required></td>`;
+    }
+    tr.innerHTML = `<td class="qtext"><b>${idx+1}.</b> ${item.t}</td>${radios}`;
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  pageDiv.appendChild(table);
+  qDiv.appendChild(pageDiv);
+}
+
+function qPageAnswered(p){
+  const pageDiv = qDiv.querySelector(`.q-page[data-page="${p}"]`);
+  const names = new Set();
+  pageDiv.querySelectorAll("input[type=radio]").forEach(r=>names.add(r.name));
+  for(const n of names){
+    if(!pageDiv.querySelector(`input[name="${n}"]:checked`)) return false;
   }
-  tr.innerHTML = `<td class="qtext"><b>${idx+1}.</b> ${item.t}</td>${radios}`;
-  tbody.appendChild(tr);
+  return true;
+}
+
+function updateQNav(){
+  document.getElementById("q-progress").textContent = `Section ${qCurrentPage+1} of ${Q_TOTAL_PAGES}`;
+  document.getElementById("q-back").style.display = qCurrentPage === 0 ? "none" : "inline-block";
+  const isLast = qCurrentPage === Q_TOTAL_PAGES - 1;
+  document.getElementById("q-next").style.display = isLast ? "none" : "inline-block";
+  document.getElementById("submit-btn").style.display = isLast ? "block" : "none";
+}
+
+function showQPage(p){
+  qDiv.querySelectorAll(".q-page").forEach(d=>{ d.style.display = (d.dataset.page === String(p)) ? "block" : "none"; });
+  qCurrentPage = p;
+  updateQNav();
+  qDiv.scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+document.getElementById("q-next").addEventListener("click", ()=>{
+  if(!qPageAnswered(qCurrentPage)){
+    alert("Please answer all statements in this section before continuing.");
+    return;
+  }
+  if(qCurrentPage < Q_TOTAL_PAGES - 1) showQPage(qCurrentPage + 1);
 });
-table.appendChild(tbody);
-qDiv.appendChild(table);
+document.getElementById("q-back").addEventListener("click", ()=>{
+  if(qCurrentPage > 0) showQPage(qCurrentPage - 1);
+});
+
+updateQNav();
 
 // ---------------- Submit handler ----------------
 document.getElementById("submit-btn").addEventListener("click", async ()=>{
   const name = document.getElementById("f-name").value.trim();
-  if(!name){ alert("Nama wajib diisi."); return; }
+  const gender = document.getElementById("f-gender").value;
+  if(!name){ alert("Full name is required."); return; }
+  if(!gender){ alert("Please select a gender."); return; }
 
-  // ensure all questions answered
+  // ensure all questions answered (final safety net on top of per-section validation)
   const form = document.getElementById("questionnaire");
   const allRadioNames = new Set();
   VALUES.forEach((v,vi)=>v.items.forEach((it,ii)=>allRadioNames.add(`q_${vi}_${ii}`)));
   for(const n of allRadioNames){
     if(!form.querySelector(`input[name="${n}"]:checked`)){
-      alert("Mohon lengkapi semua pernyataan sebelum submit.");
+      alert("Please answer all statements before submitting.");
       return;
     }
   }
@@ -627,13 +699,16 @@ document.getElementById("submit-btn").addEventListener("click", async ()=>{
   });
   const total = Object.values(valueScores).reduce((a,b)=>a+b,0);
 
+  const submittedAt = new Date().toISOString();
   const entry = {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
-    name, role: document.getElementById("f-role").value.trim(),
+    name, gender,
+    role: document.getElementById("f-role").value.trim(),
     email: document.getElementById("f-email").value.trim(),
     stage: document.getElementById("f-stage").value,
     assessor: document.getElementById("f-assessor").value.trim(),
-    date: new Date().toISOString(),
+    date: submittedAt,
+    startedAt: assessmentStartTime || submittedAt,
     valueScores, total,
   };
 
@@ -642,7 +717,7 @@ document.getElementById("submit-btn").addEventListener("click", async ()=>{
   try{
     await postSubmission(entry);
   }catch(err){
-    alert("Gagal mengirim assessment. Periksa koneksi internet Anda dan coba lagi.");
+    alert("Failed to submit the assessment. Please check your internet connection and try again.");
     submitBtn.disabled = false;
     return;
   }
@@ -651,9 +726,14 @@ document.getElementById("submit-btn").addEventListener("click", async ()=>{
   document.getElementById("success-banner").style.display = "block";
   form.reset();
   document.getElementById("f-name").value = "";
+  document.getElementById("f-gender").value = "";
   document.getElementById("f-role").value = "";
   document.getElementById("f-email").value = "";
   document.getElementById("f-assessor").value = "";
+  qCurrentPage = 0;
+  qDiv.querySelectorAll(".q-page").forEach(d=>{ d.style.display = (d.dataset.page === "0") ? "block" : "none"; });
+  updateQNav();
+  assessmentStartTime = new Date().toISOString();
   window.scrollTo({top:0, behavior:"smooth"});
   setTimeout(()=>{ document.getElementById("success-banner").style.display = "none"; }, 6000);
 });
@@ -682,10 +762,12 @@ function showApp(){
   document.getElementById("role-gate").style.display = "none";
   document.querySelector("nav").style.display = "flex";
   document.querySelector("main").style.display = "block";
-  document.getElementById("role-switch").style.display = "block";
+  document.getElementById("admin-login-link").style.display = "none";
 }
 
 let currentRole = null;
+
+let assessmentStartTime = null;
 
 function enterCandidateMode(){
   currentRole = "candidate";
@@ -698,8 +780,9 @@ function enterCandidateMode(){
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
   document.getElementById("view-form").classList.add("active");
   document.getElementById("admin-only-fields").style.display = "none";
-  document.getElementById("f-stage").value = "Screening Awal";
+  document.getElementById("f-stage").value = "Initial Screening";
   document.getElementById("f-assessor").value = "";
+  assessmentStartTime = new Date().toISOString();
 }
 
 async function enterAdminMode(){
@@ -716,7 +799,7 @@ async function enterAdminMode(){
 }
 
 document.getElementById("role-candidate").addEventListener("click", enterCandidateMode);
-document.getElementById("role-admin").addEventListener("click", ()=>{
+document.getElementById("admin-login-link").addEventListener("click", ()=>{
   document.getElementById("admin-passcode-box").style.display = "block";
   document.getElementById("admin-passcode").focus();
 });
@@ -730,16 +813,6 @@ function tryAdminLogin(){
 }
 document.getElementById("admin-passcode-submit").addEventListener("click", tryAdminLogin);
 document.getElementById("admin-passcode").addEventListener("keydown", (e)=>{ if(e.key === "Enter") tryAdminLogin(); });
-
-document.getElementById("role-switch").addEventListener("click", ()=>{
-  document.getElementById("role-gate").style.display = "flex";
-  document.querySelector("nav").style.display = "none";
-  document.querySelector("main").style.display = "none";
-  document.getElementById("role-switch").style.display = "none";
-  document.getElementById("admin-passcode-box").style.display = "none";
-  document.getElementById("admin-passcode").value = "";
-  document.getElementById("admin-passcode-error").style.display = "none";
-});
 
 // ---------------- About table ----------------
 const aboutMap = document.getElementById("about-map");
@@ -758,6 +831,11 @@ let aggChart = null, detailChart = null;
 // near-invisible light-grey-on-dark styling.
 function radarOptions(){
   return {
+    // Animation is disabled so the chart is fully painted the instant it is
+    // created — otherwise a canvas.toDataURL() snapshot taken right after
+    // creation (e.g. for the printed report) can capture a blank/partial
+    // in-progress animation frame instead of the finished chart.
+    animation: false,
     scales: {
       r: {
         min: 0, max: 20,
@@ -810,6 +888,7 @@ function renderDashboard(){
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${e.name}</td>
+      <td>${e.gender||"-"}</td>
       <td>${e.role||"-"}</td>
       <td>${e.stage}</td>
       <td>${new Date(e.date).toLocaleDateString("en-US")}</td>
@@ -828,7 +907,7 @@ function renderDashboard(){
         await fetchSubmissions();
         renderDashboard();
       }catch(err){
-        alert("Gagal menghapus data. Coba lagi.");
+        alert("Failed to delete the entry. Please try again.");
       }
     }
   }));
@@ -852,7 +931,8 @@ function openDetail(id){
   const rec = getRecommendation(e);
 
   document.getElementById("modal-name").textContent = e.name;
-  document.getElementById("modal-meta").innerHTML = `${e.role||"-"} &middot; ${e.stage} &middot; ${new Date(e.date).toLocaleString("en-US")} &middot; Reviewed by: ${e.assessor||"-"}<br>Total Score: <b>${e.total}</b>/100`;
+  const durationLabel = (e.startedAt && e.date) ? `${Math.max(0, Math.round((new Date(e.date) - new Date(e.startedAt))/60000))} min` : "-";
+  document.getElementById("modal-meta").innerHTML = `${e.gender||"-"} &middot; ${e.role||"-"} &middot; ${e.stage} &middot; Reviewed by: ${e.assessor||"-"}<br>Started: ${e.startedAt ? new Date(e.startedAt).toLocaleString("en-US") : "-"} &middot; Submitted: ${new Date(e.date).toLocaleString("en-US")} &middot; Duration: ${durationLabel}<br>Total Score: <b>${e.total}</b>/100`;
   document.getElementById("modal-rec-badge").className = "badge " + rec.cls;
   document.getElementById("modal-rec-badge").textContent = "Recommendation: " + rec.label;
   document.getElementById("modal-rec-note").textContent = rec.note;
@@ -910,6 +990,12 @@ function printSummary(e){
   const questionsHtml = profile.questions.length
     ? `<h3>Suggested Interview Questions</h3><ul>${profile.questions.map(q=>`<li><b>[${q.value}]</b> ${q.q}</li>`).join("")}</ul>`
     : "";
+  // Snapshot the radar chart that's already drawn in the detail modal so the
+  // printed report includes the same diagram instead of a blank gap — the
+  // print window is a separate document and can't render a live Chart.js
+  // canvas of its own.
+  const chartCanvas = document.getElementById("chart-detail-radar");
+  const chartImg = (chartCanvas && chartCanvas.width > 0) ? chartCanvas.toDataURL("image/png") : null;
   const w = window.open("", "_blank");
   w.document.write(`
     <html><head><title>Report - ${e.name}</title>
@@ -927,6 +1013,8 @@ function printSummary(e){
     td,th{border:1px solid #ddd;padding:8px 10px;font-size:12.5px;text-align:left;vertical-align:top;} th{background:#f6f1e4;color:#4a3a17;}
     .rec{background:#f6f1e4;border-left:4px solid #CAAE65;border-radius:6px;padding:12px 16px;margin-top:14px;break-inside:avoid;page-break-inside:avoid;}
     .summary{background:#faf8f3;border-left:3px solid #CAAE65;padding:10px 14px;margin-top:14px;font-size:13px;break-inside:avoid;page-break-inside:avoid;}
+    .chart-block{text-align:center;margin:14px 0;break-inside:avoid;page-break-inside:avoid;}
+    .chart-block img{max-width:300px;width:100%;height:auto;}
     ul{font-size:13px;line-height:1.65;margin:6px 0;padding-left:20px;}
     li{break-inside:avoid;page-break-inside:avoid;}
     .cols{display:flex;gap:30px;break-inside:avoid;page-break-inside:avoid;}
@@ -938,12 +1026,14 @@ function printSummary(e){
     </head><body>
     <img class="report-logo" alt="Midas Talent Match" width="220" height="63" src="${LOGO_DATA_URI}">
     <h1>MIDAS DNA Assessment — Results Report</h1>
-    <p><b>Name:</b> ${e.name}<br><b>Role:</b> ${e.role||"-"}<br><b>Stage:</b> ${e.stage}<br>
-    <b>Date:</b> ${new Date(e.date).toLocaleString("en-US")}<br><b>Reviewed by:</b> ${e.assessor||"-"}</p>
+    <p><b>Name:</b> ${e.name}<br><b>Gender:</b> ${e.gender||"-"}<br><b>Role:</b> ${e.role||"-"}<br><b>Stage:</b> ${e.stage}<br>
+    <b>Started:</b> ${e.startedAt ? new Date(e.startedAt).toLocaleString("en-US") : "-"}<br>
+    <b>Submitted:</b> ${new Date(e.date).toLocaleString("en-US")}<br><b>Reviewed by:</b> ${e.assessor||"-"}</p>
     <p><b>Total Score:</b> ${e.total}/100</p>
     <div class="rec"><b>Recommendation: ${rec.label}</b><br><span style="font-size:12.5px;">${rec.note}</span></div>
     <h3>Profile Summary</h3>
     <div class="summary">${profile.summary}</div>
+    ${chartImg ? `<h3>Core Value Radar</h3><div class="chart-block"><img src="${chartImg}" alt="Core Value Radar Chart"></div>` : ""}
     <div class="cols">
       <div><h3>Key Strengths</h3><ul>${strengthsHtml}</ul></div>
       <div><h3>Development Areas</h3><ul>${watchoutsHtml}</ul></div>
@@ -976,11 +1066,16 @@ function printSummary(e){
 document.getElementById("export-csv").addEventListener("click", ()=>{
   const data = getFiltered();
   if(!data.length){ alert("No data available to export."); return; }
-  const header = ["Name","Role","Email","Stage","Date","Assessor", ...VALUES.map(v=>v.label), "Total Score","Recommendation"];
-  const rows = data.map(e=>[
-    e.name, e.role, e.email, e.stage, new Date(e.date).toLocaleString("en-US"), e.assessor,
-    ...VALUES.map(v=>e.valueScores[v.key]), e.total, getRecommendation(e).label
-  ]);
+  const header = ["Name","Gender","Role","Email","Stage","Start Time","Submit Time","Duration (min)","Assessor", ...VALUES.map(v=>v.label), "Total Score","Recommendation"];
+  const rows = data.map(e=>{
+    const durationMin = (e.startedAt && e.date) ? Math.max(0, Math.round((new Date(e.date) - new Date(e.startedAt))/60000)) : "";
+    return [
+      e.name, e.gender||"", e.role, e.email, e.stage,
+      e.startedAt ? new Date(e.startedAt).toLocaleString("en-US") : "",
+      new Date(e.date).toLocaleString("en-US"), durationMin, e.assessor,
+      ...VALUES.map(v=>e.valueScores[v.key]), e.total, getRecommendation(e).label
+    ];
+  });
   const csv = [header, ...rows].map(r=>r.map(x=>`"${String(x||"").replace(/"/g,'""')}"`).join(",")).join("\n");
   const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
@@ -996,7 +1091,7 @@ document.getElementById("clear-all").addEventListener("click", async ()=>{
       await fetchSubmissions();
       renderDashboard();
     }catch(err){
-      alert("Gagal menghapus semua data. Coba lagi.");
+      alert("Failed to delete all data. Please try again.");
     }
   }
 });
