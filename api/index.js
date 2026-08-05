@@ -62,7 +62,7 @@ function rowToEntry(r) {
     valueScores: r.value_scores,
     total: r.total,
   };
-
+}
 
 app.post("/api/submissions", async (req, res) => {
   try {
@@ -84,40 +84,38 @@ app.post("/api/submissions", async (req, res) => {
   }
 });
 
-  app.get("/api/submissions", requireAdmin, async (req, res) => {
-    try {
-      const { rows } = await pool.query(
-        "SELECT id, name, role, email, stage, assessor, date, value_scores, total FROM submissions ORDER BY date DESC"
-        );
-      res.json(rows.map(rowToEntry));
-    } catch (err) {
-      console.error("GET /api/submissions failed:", err);
-      res.status(500).json({ error: "Server error" });
-    }
-  });
+app.get("/api/submissions", requireAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT id, name, role, email, stage, assessor, date, value_scores, total FROM submissions ORDER BY date DESC"
+      );
+    res.json(rows.map(rowToEntry));
+  } catch (err) {
+    console.error("GET /api/submissions failed:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
-  app.delete("/api/submissions/:id", requireAdmin, async (req, res) => {
-    try {
-      await pool.query("DELETE FROM submissions WHERE id=$1", [req.params.id]);
-      res.json({ ok: true });
-    } catch (err) {
-      console.error("DELETE /api/submissions/:id failed:", err);
-      res.status(500).json({ error: "Server error" });
-    }
-  });
+app.delete("/api/submissions/:id", requireAdmin, async (req, res) => {
+  try {
+    await pool.query("DELETE FROM submissions WHERE id=$1", [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("DELETE /api/submissions/:id failed:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
-  app.delete("/api/submissions", requireAdmin, async (req, res) => {
-    try {
-      await pool.query("DELETE FROM submissions");
-      res.json({ ok: true });
-    } catch (err) {
-      console.error("DELETE /api/submissions failed:", err);
-      res.status(500).json({ error: "Server error" });
-    }
-  });
+app.delete("/api/submissions", requireAdmin, async (req, res) => {
+  try {
+    await pool.query("DELETE FROM submissions");
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("DELETE /api/submissions failed:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
-  app.get("/healthz", (req, res) => res.json({ ok: true }));
+app.get("/healthz", (req, res) => res.json({ ok: true }));
 
-  module.exports = app;
-  
-}
+module.exports = app;
