@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIDAS DNA Assessment Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+  /* Palette pulled directly from midastalentmatch.com: near-black background,
+     gold (#CAAE65) accent, white text, Plus Jakarta Sans typeface. */
+  :root{
+    --gold:#CAAE65; --gold-light:#e3d3a0; --gold-dark:#a98b45;
+    --bg:#0a0a08; --bg-deep:#050504; --card:#242422; --card-alt:#2c2c29;
+    --border:rgba(202,174,101,0.22); --border-soft:rgba(255,255,255,0.1);
+    --text:#f3f1ea; --muted:#a9a49a;
+    --green:#34d399; --green-bg:rgba(52,211,153,0.14);
+    --blue:#60a5fa; --blue-bg:rgba(96,165,250,0.14);
+    --amber:#fbbf24; --amber-bg:rgba(251,191,36,0.14);
+    --red:#f87171; --red-bg:rgba(248,113,113,0.14);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Plus Jakarta Sans',Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);}
+  header{background:linear-gradient(135deg,var(--bg-deep),#171410);border-bottom:1px solid var(--border);color:var(--text);padding:18px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+  .brand{display:flex;align-items:center;gap:16px;}
+  .brand-logo{height:50px;width:auto;display:block;}
+  header h1{margin:0;font-size:19px;letter-spacing:.3px;font-weight:700;color:#fff;}
+  header p{margin:3px 0 0;font-size:11px;color:var(--gold);letter-spacing:.8px;text-transform:uppercase;}
+  #role-switch{display:none;font-size:12px;color:var(--gold);cursor:pointer;text-decoration:underline;}
+  nav{display:none;gap:6px;background:var(--bg-deep);border-bottom:1px solid var(--border);padding:0 24px;position:sticky;top:0;z-index:20;flex-wrap:wrap;}
+  nav button{border:none;background:none;padding:14px 18px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;font-family:inherit;}
+  nav button.active{color:var(--gold);border-bottom-color:var(--gold);}
+  main{display:none;max-width:1180px;margin:0 auto;padding:26px 20px 60px;}
+  #role-gate{display:flex;justify-content:center;align-items:flex-start;padding:60px 16px;}
+  .role-gate-card{max-width:520px;width:100%;text-align:center;}
+  .role-gate-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:22px;}
+  .role-gate-actions .btn{padding:15px 26px;}
+  #admin-passcode-box{display:none;margin-top:22px;text-align:left;border-top:1px solid var(--border);padding-top:18px;}
+  #admin-passcode-error{display:none;color:var(--red);font-size:12.5px;margin-top:6px;}
+  .view{display:none;}
+  .view.active{display:block;}
+  .card{background:var(--card);border:1px solid var(--border-soft);border-radius:12px;padding:22px 24px;margin-bottom:20px;box-shadow:0 4px 14px rgba(0,0,0,.35);}
+  .card h2{margin-top:0;color:var(--gold);font-size:18px;}
+  .card h3{color:var(--gold);font-size:15px;margin:18px 0 8px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;}
+  .stat{background:var(--card);border:1px solid var(--border-soft);border-radius:12px;padding:18px;text-align:center;}
+  .stat .num{font-size:28px;font-weight:700;color:var(--gold);}
+  .stat .lbl{font-size:12px;color:var(--muted);margin-top:4px;}
+  label{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
+  input[type=text],input[type=email],select{width:100%;padding:9px 10px;border:1px solid var(--border-soft);border-radius:8px;font-size:14px;margin-bottom:14px;background:var(--card-alt);color:var(--text);font-family:inherit;}
+  input[type=text]::placeholder,input[type=email]::placeholder{color:var(--muted);}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  .scale-table{border-collapse:collapse;margin:8px 0 20px;}
+  .scale-table td{border:1px solid var(--border-soft);padding:8px 16px;text-align:center;font-size:13px;}
+  .scale-table tr:first-child td{background:var(--card-alt);color:var(--gold);font-weight:600;}
+  .scale-table tr:last-child td{background:var(--gold);color:#171510;font-weight:700;}
+  .qtable{width:100%;border-collapse:collapse;margin-bottom:10px;}
+  .qtable th,.qtable td{border:1px solid var(--border-soft);padding:8px 10px;font-size:13.5px;}
+  .qtable th{background:var(--card-alt);color:var(--gold);text-align:center;width:40px;}
+  .qtable td.qtext{text-align:left;}
+  .qtable td.qradio{text-align:center;width:40px;}
+  .qtable input[type=radio]{accent-color:var(--gold);}
+  .value-block{border-left:4px solid var(--gold);padding-left:14px;margin-bottom:22px;}
+  .value-block .vdesc{color:var(--muted);font-size:13px;margin:2px 0 10px;}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+  .badge-green{background:var(--green-bg);color:var(--green);}
+  .badge-blue{background:var(--blue-bg);color:var(--blue);}
+  .badge-amber{background:var(--amber-bg);color:var(--amber);}
+  .badge-red{background:var(--red-bg);color:var(--red);}
+  .btn{background:transparent;color:var(--gold);border:1.5px solid var(--gold);padding:11px 24px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.2px;}
+  .btn:hover{background:rgba(202,174,101,0.12);}
+  .btn-gold{background:var(--gold);color:#171510;border-color:var(--gold);}
+  .btn-gold:hover{background:var(--gold-light);border-color:var(--gold-light);}
+  .btn-outline{background:transparent;color:var(--text);border:1.5px solid var(--border-soft);}
+  .btn-outline:hover{background:rgba(255,255,255,0.06);}
+  .btn-sm{padding:7px 14px;font-size:12.5px;}
+  .btn-danger{background:transparent;color:var(--red);border:1.5px solid var(--red);}
+  .btn-danger:hover{background:rgba(248,113,113,0.12);}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+  .filters{display:flex;gap:10px;flex-wrap:wrap;}
+  .filters input,.filters select{margin-bottom:0;width:auto;min-width:160px;}
+  table.datatable{width:100%;border-collapse:collapse;}
+  table.datatable th,table.datatable td{padding:10px 12px;border-bottom:1px solid var(--border-soft);font-size:13.5px;text-align:left;}
+  table.datatable th{color:var(--gold);background:var(--card-alt);font-size:12.5px;text-transform:uppercase;letter-spacing:.3px;}
+  table.datatable tr:hover{background:rgba(255,255,255,0.03);cursor:pointer;}
+  .empty{text-align:center;color:var(--muted);padding:40px 0;}
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:50;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;}
+  .modal-bg.active{display:flex;}
+  .modal{background:var(--card);border:1px solid var(--border);border-radius:14px;max-width:760px;width:100%;padding:26px 28px;position:relative;color:var(--text);}
+  .modal.modal-wide{max-width:860px;}
+  .modal .close{position:absolute;top:14px;right:18px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);}
+  .chart-wrap{max-width:420px;margin:0 auto;}
+  .flexcharts{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+  .rec-box{background:var(--card-alt);border:1px solid var(--border-soft);border-radius:10px;padding:14px 16px;margin-bottom:18px;}
+  .rec-box .badge{font-size:13px;padding:5px 12px;}
+  .rec-note{margin-top:8px;font-size:13px;color:var(--text);line-height:1.5;}
+  .profile-summary{background:var(--card-alt);border-left:3px solid var(--gold);padding:10px 14px;font-size:13.5px;line-height:1.6;margin:6px 0 18px;color:var(--text);}
+  .sw-box{display:flex;flex-direction:column;gap:16px;}
+  .sw-col h4{margin:0 0 6px;color:var(--gold);font-size:13.5px;}
+  .sw-col ul{margin:0;padding-left:18px;font-size:13px;line-height:1.6;}
+  .muted-note{color:var(--muted);font-size:11.5px;}
+  .value-detail-list{display:flex;flex-direction:column;gap:10px;margin:10px 0 20px;}
+  .value-detail-item{border:1px solid var(--border-soft);border-radius:8px;padding:10px 14px;}
+  .vd-head{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+  .vd-score{color:var(--muted);font-size:12.5px;margin-left:auto;}
+  .vd-narrative{font-size:13px;color:var(--text);line-height:1.5;}
+  #modal-questions{margin:8px 0 0;padding-left:18px;font-size:13px;line-height:1.7;}
+  @media (max-width:720px){.row2,.row3{grid-template-columns:1fr;}.flexcharts{grid-template-columns:1fr;}}
+  .mini-table{width:100%;border-collapse:collapse;margin-top:10px;}
+  .mini-table th,.mini-table td{border:1px solid var(--border-soft);padding:6px 8px;font-size:12.5px;}
+  .mini-table th{background:var(--card-alt);color:var(--gold);}
+  .footer-note{font-size:12px;color:var(--muted);text-align:center;margin-top:10px;}
+  .success-banner{background:var(--green-bg);color:var(--green);border:1px solid rgba(52,211,153,0.35);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:14px;font-weight:600;display:none;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img class="brand-logo" alt="Midas Talent Match" width="175" height="50" src="/logo.png">
+    <div class="brand-text">
+      <h1>DNA Assessment</h1>
+      <p>Internal Assessment Platform</p>
+    </div>
+  </div>
+  <div id="role-switch">Switch Role</div>
+</header>
+
+<div id="role-gate">
+  <div class="card role-gate-card">
+    <h2>Selamat Datang</h2>
+    <p style="color:var(--muted);">Silakan pilih peran Anda untuk melanjutkan.</p>
+    <div class="role-gate-actions">
+      <button class="btn btn-gold" id="role-candidate">Saya Kandidat / Peserta</button>
+      <button class="btn btn-outline" id="role-admin">Admin / HR</button>
+    </div>
+    <div id="admin-passcode-box">
+      <label>Enter Admin Access Code</label>
+      <input type="text" id="admin-passcode" placeholder="Access code">
+      <button class="btn" id="admin-passcode-submit" style="width:100%;">Enter</button>
+      <div id="admin-passcode-error">Incorrect access code, please try again.</div>
+    </div>
+  </div>
+</div>
+
+<nav>
+  <button class="tab-btn active" data-view="form">Isi Assessment</button>
+  <button class="tab-btn" data-view="dashboard">Admin Dashboard</button>
+  <button class="tab-btn" data-view="about">Internal Guide</button>
+</nav>
+
+<main>
+
+  <!-- ============ FORM VIEW ============ -->
+  <section id="view-form" class="view active">
+    <div class="card">
+      <h2>Data Kandidat / Karyawan</h2>
+      <div class="row3">
+        <div><label>Nama Lengkap *</label><input type="text" id="f-name" placeholder="Nama"></div>
+        <div><label>Posisi yang Dilamar / Role</label><input type="text" id="f-role" placeholder="mis. HR Consultant"></div>
+        <div><label>Email (opsional)</label><input type="email" id="f-email" placeholder="nama@email.com"></div>
+      </div>
+      <div class="row2" id="admin-only-fields">
+        <div>
+          <label>Selection Stage *</label>
+          <select id="f-stage">
+            <option value="Initial Screening">Initial Screening</option>
+            <option value="Interview Panel">Interview Panel</option>
+            <option value="Internal Evaluation">Internal Evaluation</option>
+          </select>
+        </div>
+        <div><label>Reviewed by</label><input type="text" id="f-assessor" placeholder="HR / Assessor name"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Kuesioner MIDAS DNA</h2>
+      <p style="color:var(--muted);font-size:13.5px;">Nilai seberapa sesuai tiap pernyataan dengan diri Anda secara jujur. Tidak ada jawaban benar/salah.</p>
+      <table class="scale-table">
+        <tr>
+          <td>Sangat Tidak Setuju</td>
+          <td>Tidak Setuju</td>
+          <td>Setuju</td>
+          <td>Sangat Setuju</td>
+        </tr>
+        <tr>
+          <td><b>1</b></td>
+          <td><b>2</b></td>
+          <td><b>3</b></td>
+          <td><b>4</b></td>
+        </tr>
+      </table>
+      <div id="questionnaire"></div>
+    </div>
+
+    <div id="success-banner" class="success-banner">Terima kasih, jawaban Anda telah berhasil dikirim. Tim kami akan meninjau hasil assessment ini sebagai bagian dari proses seleksi.</div>
+    <button class="btn btn-gold" id="submit-btn" style="width:100%;padding:14px;font-size:15px;">Submit Assessment</button>
+  </section>
+
+  <!-- ============ DASHBOARD VIEW ============ -->
+  <section id="view-dashboard" class="view">
+    <div class="grid" style="margin-bottom:20px;">
+      <div class="stat"><div class="num" id="stat-total">0</div><div class="lbl">Total Participants</div></div>
+      <div class="stat"><div class="num" id="stat-avg">0</div><div class="lbl">Average Total Score (25–100)</div></div>
+      <div class="stat"><div class="num" id="stat-strong">0</div><div class="lbl">Fit / Recommended</div></div>
+      <div class="stat"><div class="num" id="stat-low">0</div><div class="lbl">Not a Fit with MIDAS</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Average Profile per Core Value</h2>
+      <div class="chart-wrap"><canvas id="chart-agg-radar"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <h2 style="margin:0;">Participant List</h2>
+        <div class="filters">
+          <input type="text" id="filter-name" placeholder="Search name...">
+          <select id="filter-stage">
+            <option value="">All Stages</option>
+            <option value="Initial Screening">Initial Screening</option>
+            <option value="Interview Panel">Interview Panel</option>
+            <option value="Internal Evaluation">Internal Evaluation</option>
+          </select>
+          <select id="filter-cat">
+            <option value="">All Recommendations</option>
+            <option value="Fit — Highly Recommended">Fit — Highly Recommended</option>
+            <option value="Fit — Recommended">Fit — Recommended</option>
+            <option value="Requires Further Consideration">Requires Further Consideration</option>
+            <option value="Not a Fit with MIDAS">Not a Fit with MIDAS</option>
+          </select>
+          <button class="btn btn-outline btn-sm" id="export-csv">Export CSV</button>
+          <button class="btn-danger btn-sm" id="clear-all" style="border-radius:6px;">Delete All</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="datatable" id="data-table">
+          <thead>
+            <tr><th>Name</th><th>Role</th><th>Stage</th><th>Date</th><th>Total Score</th><th>Recommendation</th><th>Action</th></tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+        <div class="empty" id="empty-state">No data yet. Complete an assessment in the "Isi Assessment" tab to start collecting data.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ABOUT VIEW ============ -->
+  <section id="view-about" class="view">
+    <div class="card">
+      <h2>About the MIDAS DNA Assessment</h2>
+      <p>This assessment measures how well an individual aligns with Midas Talent Match's five core values (the acronym <b>MIDAS</b>): Mastery, Impact, Diversity, Accountability, and Service Excellence. Each value is mapped to a domain/facet of the <b>Big Five (OCEAN)</b> personality model — Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism (Costa &amp; McCrae, 1992; Goldberg, 1990) — so that each statement is grounded in well-researched personality traits rather than assumptions about company culture.</p>
+      <p style="color:var(--muted);font-size:13px;font-style:italic;">Methodological note: this is a custom questionnaire that draws on the Big Five facet taxonomy; it is not a standardized instrument that has undergone formal validity/reliability testing. For high-stakes decisions (e.g. C-level positions), combine this with a validated instrument (IPIP-NEO-120, BFI-2) and a review by an industrial psychologist.</p>
+      <h3>Core Value → Big Five Mapping</h3>
+      <table class="mini-table">
+        <thead><tr><th>Core Value</th><th>Big Five Domain</th><th>Rationale</th></tr></thead>
+        <tbody id="about-map"></tbody>
+      </table>
+      <h3>Scoring Scheme</h3>
+      <p style="font-size:13.5px;">The rating scale is a 4-point forced-choice scale (1–4, no neutral option) so respondents cannot "play it safe" by selecting the midpoint. Normal items are scored as-is (1–4). Reverse-scored items (marked R) are inverted: 5 − score. Per-value score = sum of 5 items (range 5–20). Total score = sum of 5 values (range 25–100).</p>
+      <table class="mini-table">
+        <thead><tr><th>Total Score</th><th>Category</th><th>Recommendation</th></tr></thead>
+        <tbody>
+          <tr><td>85–100</td><td>Very Strong</td><td>Proceed to the next stage with confidence.</td></tr>
+          <tr><td>65–84</td><td>Good</td><td>Proceed, confirm the lowest-scoring value via behavioral interview.</td></tr>
+          <tr><td>45–64</td><td>Mixed</td><td>Explore flagged values further before proceeding.</td></tr>
+          <tr><td>&lt; 45</td><td>Not Aligned</td><td>Reconsider; likely a weaker fit with MIDAS culture.</td></tr>
+        </tbody>
+      </table>
+      <p class="footer-note">As this is a self-report instrument, results are susceptible to social desirability bias — always combine with interviews and real work observation, and never use this as the sole basis for a decision.</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- Detail Modal -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal modal-wide">
+    <button class="close" id="modal-close">✕</button>
+    <h2 id="modal-name" style="color:var(--navy);margin-top:0;"></h2>
+    <div id="modal-meta" style="color:var(--muted);font-size:13px;margin-bottom:14px;"></div>
+    <div id="modal-recommendation" class="rec-box">
+      <div class="rec-label"><span id="modal-rec-badge" class="badge"></span></div>
+      <div id="modal-rec-note" class="rec-note"></div>
+    </div>
+    <h3 style="margin-bottom:6px;">Profile Summary</h3>
+    <p id="modal-summary" class="profile-summary"></p>
+    <div class="flexcharts">
+      <div><canvas id="chart-detail-radar"></canvas></div>
+      <div id="modal-strengths-watchouts" class="sw-box"></div>
+    </div>
+    <h3>Core Value Breakdown</h3>
+    <div id="modal-value-detail" class="value-detail-list"></div>
+    <div id="modal-questions-section">
+      <h3>Suggested Interview Questions</h3>
+      <ul id="modal-questions"></ul>
+    </div>
+    <div style="margin-top:18px;text-align:right;">
+      <button class="btn btn-outline btn-sm" id="modal-print">Print Full Report</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const LOGO_DATA_URI = "/logo.png";
+
+// ---------------- DATA: MIDAS core values, Big Five mapping, 25 items ----------------
+const VALUES = [
+  {
+    key: "MASTERY", label: "Mastery",
+    desc: "We strive for excellence in every aspect of our work. Our focus on continuous learning and improvement ensures that we deliver the highest quality talent solutions.",
+    domain: "Conscientiousness (primary) + Openness (secondary)",
+    rationale: "Learning orientation combined with confirming competence before acting.",
+    items: [
+      { t: "Saya secara proaktif mengembangkan kompetensi dan pengetahuan saya, termasuk di luar tuntutan pekerjaan sehari-hari.", r: false },
+      { t: "Saya cenderung berhenti mengembangkan diri setelah mencapai tingkat kemahiran tertentu.", r: true },
+      { t: "Saya memastikan kompetensi saya memadai sebelum menerima tanggung jawab atas suatu pekerjaan atau proyek.", r: false },
+      { t: "Saya kerap menerima suatu pekerjaan atau proyek terlebih dahulu, tanpa memastikan kesiapan saya untuk mengerjakannya dengan baik.", r: true },
+      { t: "Saya memandang umpan balik (feedback) sebagai sarana penting untuk terus berkembang.", r: false },
+    ],
+  },
+  {
+    key: "IMPACT", label: "Impact",
+    desc: "We are focused on creating meaningful change. Whether through talent placement or strategic consultancy, our solutions are designed to make a measurable impact on our clients' success.",
+    domain: "Conscientiousness – Achievement-Striving + Extraversion – Assertiveness",
+    rationale: "Drive to achieve tangible results and initiative to act.",
+    items: [
+      { t: "Saya senantiasa mempertimbangkan dampak nyata dari pekerjaan saya terhadap klien maupun organisasi.", r: false },
+      { t: "Bagi saya, menyelesaikan suatu pekerjaan sudah cukup, tanpa perlu mengetahui apakah hasilnya benar-benar bermanfaat.", r: true },
+      { t: "Saya berupaya mengukur hasil kerja saya berdasarkan dampak yang dihasilkan, bukan sekadar upaya yang dilakukan.", r: false },
+      { t: "Saya jarang mempertanyakan manfaat suatu tugas, selama tugas tersebut memang menjadi bagian dari pekerjaan saya.", r: true },
+      { t: "Saya proaktif mengambil langkah untuk menyelesaikan permasalahan yang berdampak signifikan bagi klien maupun organisasi.", r: false },
+    ],
+  },
+  {
+    key: "DIVERSITY", label: "Diversity",
+    desc: "We celebrate diversity in all its forms. By embracing diverse perspectives and creating inclusive environments, we foster innovation and ensure our solutions reflect the varied needs of our global clients.",
+    domain: "Openness – Values/Ideas + Agreeableness – Trust",
+    rationale: "Openness to differing perspectives and trust in others.",
+    items: [
+      { t: "Saya mampu bekerja secara efektif dengan individu dari latar belakang, budaya, maupun cara berpikir yang berbeda.", r: false },
+      { t: "Saya merasa lebih nyaman apabila anggota tim memiliki latar belakang yang serupa dengan saya.", r: true },
+      { t: "Saya secara aktif mempertimbangkan sudut pandang yang berbeda dari sudut pandang saya sendiri sebelum mengambil suatu keputusan.", r: false },
+      { t: "Menurut saya, perbedaan pandangan dengan mayoritas cenderung memperlambat proses kerja.", r: true },
+      { t: "Saya tetap dapat bekerja secara produktif meskipun berada dalam lingkungan yang sangat berbeda dari kebiasaan saya.", r: false },
+    ],
+  },
+  {
+    key: "ACCOUNTABILITY", label: "Accountability",
+    desc: "We take full responsibility for our actions, decisions, and outcomes, and hold ourselves to the highest ethical standards. Accountability is not just about meeting expectations, but also about ensuring that our work reflects honesty, transparency, and trustworthiness.",
+    domain: "Conscientiousness – Dutifulness/Deliberation + low Neuroticism (emotional stability)",
+    rationale: "Self-discipline and honesty when facing mistakes.",
+    items: [
+      { t: "Ketika melakukan kesalahan, saya mengakuinya secara terbuka kepada pihak yang terkait.", r: false },
+      { t: "Ketika menghadapi suatu permasalahan, saya cenderung lebih berfokus mencari pihak yang bersalah dibandingkan mencari solusi.", r: true },
+      { t: "Saya menyelesaikan komitmen saya tepat waktu meski tidak ada yang mengawasi.", r: false },
+      { t: "Saya kerap menutupi kesalahan kecil agar tidak dinilai buruk oleh atasan.", r: true },
+      { t: "Saya bersedia bertanggung jawab atas hasil kerja tim, bukan hanya atas bagian pekerjaan saya sendiri.", r: false },
+    ],
+  },
+  {
+    key: "SERVICE EXCELLENCE", label: "Service Excellence",
+    desc: "We are committed to providing outstanding service at every touchpoint. Our focus on service excellence means that we go above and beyond to support our clients and candidates.",
+    domain: "Agreeableness – Altruism/Cooperation + Conscientiousness – Achievement-Striving",
+    rationale: "Empathy, cooperation, and an orientation to exceed expectations.",
+    items: [
+      { t: "Saya senantiasa berupaya memberikan hasil kerja yang melampaui ekspektasi, bukan sekadar memenuhi standar minimum.", r: false },
+      { t: "Saya merasa cukup puas apabila pekerjaan telah terselesaikan dengan baik, meskipun masih terdapat ruang untuk memberikan hasil yang lebih memuaskan.", r: true },
+      { t: "Saya berupaya memahami dan merespons kebutuhan klien maupun rekan kerja secara sigap.", r: false },
+      { t: "Saya memandang keluhan klien sebagai gangguan, bukan sebagai peluang untuk meningkatkan kualitas layanan.", r: true },
+      { t: "Saya berupaya melakukan lebih dari sekadar menjalankan instruksi yang diberikan.", r: false },
+    ],
+  },
+];
+
+// ---------------- Narrative bank for profiling report ----------------
+// Behavioral interpretation per core value, keyed by score category label.
+const NARRATIVES = {
+  MASTERY: {
+    "Very Strong": "Demonstrates a consistent commitment to continuous learning and reliably confirms readiness before taking on new responsibilities. This profile indicates rapid adaptation to new competencies and a high standard of work quality.",
+    "Strong": "Shows a good orientation toward self-development and exercises reasonable caution before accepting new work, although consistency across situations is not yet fully established.",
+    "Adequate": "Shows interest in learning, though this orientation warrants further reinforcement; there is some likelihood of accepting responsibilities without fully confirming readiness.",
+    "Needs Attention": "Does not yet demonstrate a sufficient continuous-learning orientation and may be inclined to take on work beyond current capacity. Recommended for further exploration at the interview stage.",
+  },
+  IMPACT: {
+    "Very Strong": "Demonstrates a strong orientation toward tangible results and impact, along with a tendency to take initiative beyond formal responsibilities.",
+    "Strong": "Reasonably attentive to the impact of their work, though not yet consistently proactive in taking on additional initiative.",
+    "Adequate": "Tends to focus on task completion without consistently considering its deeper impact.",
+    "Needs Attention": "May work in a transactional manner, prioritizing task completion without due consideration for the tangible impact on clients or the organization.",
+  },
+  DIVERSITY: {
+    "Very Strong": "Demonstrates strong adaptability to differences in background and perspective, with the potential to serve as an effective bridge across culturally diverse teams and client relationships.",
+    "Strong": "Reasonably open to differences, though may require an adjustment period in environments that differ significantly from what they are accustomed to.",
+    "Adequate": "Openness to differences remains limited; it should be confirmed that the candidate can work effectively across diverse teams and backgrounds.",
+    "Needs Attention": "May be less effective working within diverse team environments. This is an important area to explore further, given the client-facing and cross-industry nature of the role.",
+  },
+  ACCOUNTABILITY: {
+    "Very Strong": "Demonstrates strong integrity and accountability when facing mistakes, with a tendency to take full ownership of team outcomes.",
+    "Strong": "Shows reasonably good accountability, though the response to mistakes is not yet fully consistent across situations.",
+    "Adequate": "The willingness to acknowledge mistakes and take ownership still requires reinforcement.",
+    "Needs Attention": "May tend to avoid responsibility or deflect blame onto others when facing problems. This is a critical indicator against MIDAS's Accountability value and should be confirmed through the interview process.",
+  },
+  "SERVICE EXCELLENCE": {
+    "Very Strong": "Consistently delivers results that exceed expectations, in line with the service standards upheld by MIDAS.",
+    "Strong": "Reasonably responsive and service-oriented, though not yet consistently exceeding expectations.",
+    "Adequate": "Service orientation remains at a minimum standard; further exploration is needed on the candidate's ability to deliver added value when required.",
+    "Needs Attention": "May view client needs or complaints as a burden rather than an opportunity to improve service quality. This warrants particular attention given the client-facing nature of Midas's business.",
+  },
+};
+
+// Suggested behavioral (STAR) interview questions per value, used to probe
+// values that come back Adequate / Needs Attention.
+const QUESTION_BANK = {
+  MASTERY: [
+    "Describe a time you had to quickly learn a new competency to complete a piece of work. What was your process?",
+    "Have you ever declined or delayed taking on a responsibility because you felt you weren't fully ready? How did you follow up on it?",
+  ],
+  IMPACT: [
+    "Describe the piece of work you consider to have had the most significant impact on the company or a client. How did you measure that impact?",
+    "Have you ever taken initiative beyond your core responsibilities because you identified a problem that needed solving?",
+  ],
+  DIVERSITY: [
+    "Describe an experience working with a team or client with a background or culture very different from your own. What challenges did you face and how did you address them?",
+    "How do you typically respond when a viewpoint that differs significantly from your own comes up in a work discussion?",
+  ],
+  ACCOUNTABILITY: [
+    "Describe a significant mistake you made at work. How did you handle it?",
+    "Have you ever been part of a team that failed to hit its target? What was your role in that situation?",
+  ],
+  "SERVICE EXCELLENCE": [
+    "Describe a time you delivered service that exceeded a client's or colleague's expectations.",
+    "How do you typically handle complaints raised by a client or colleague?",
+  ],
+};
+
+// Builds the full profiling report for one submission: narrative summary,
+// per-value interpretation, strengths, watch-out areas and suggested
+// interview questions.
+//
+// A perfect 100/100 is not a realistic outcome for a self-report instrument,
+// so this report always surfaces at least one development area — even for a
+// top-scoring candidate — rather than only flagging values that fall into
+// the Adequate/Needs Attention bands. Each watchout carries a `concern` flag
+// so the UI can distinguish a genuine risk indicator from a candidate's
+// comparatively lowest-scoring value within an otherwise strong profile.
+function buildProfile(entry){
+  const perValue = VALUES.map(v=>{
+    const score = entry.valueScores[v.key];
+    const cat = perValueCategory(score);
+    return { key: v.key, label: v.label, score, cat, narrative: NARRATIVES[v.key][cat.label] };
+  });
+  const sorted = [...perValue].sort((a,b)=>b.score-a.score);
+  const strengths = sorted.slice(0,2);
+
+  const isConcern = v => v.cat.label==="Adequate" || v.cat.label==="Needs Attention";
+  let watchouts = perValue.filter(isConcern);
+  let watchoutsAreFallback = false;
+  if(watchouts.length===0){
+    // No genuine concern — still surface the relatively lowest-scoring value
+    // as a development area, since no candidate profile is perfect.
+    watchouts = [sorted[sorted.length-1]];
+    watchoutsAreFallback = true;
+  }
+  watchouts = [...watchouts].sort((a,b)=>a.score-b.score).map(w=>({ ...w, concern: isConcern(w) }));
+
+  const rec = getRecommendation(entry);
+  const strengthNames = strengths.map(s=>s.label).join(" and ");
+  const watchoutNames = watchouts.map(w=>w.label).join(", ");
+  const genuineConcerns = watchouts.filter(w=>w.concern);
+  const summary = `${entry.name}'s MIDAS DNA profile shows key strengths in ${strengthNames}. `
+    + (genuineConcerns.length > 0
+        ? `Areas of concern that should be explored further at the interview stage include ${genuineConcerns.map(w=>w.label).join(", ")}. `
+        : `No core value shows a significant risk indicator at this stage; as a perfect profile is not a realistic outcome, ${watchoutNames} represents this candidate's comparatively lowest-scoring value and remains worth exploring as a development area. `)
+    + `With a total score of ${entry.total}/100, this assessment result points to a recommendation of "${rec.label}".`;
+
+  const questions = [];
+  watchouts.forEach(w=>{
+    if(w.concern){
+      (QUESTION_BANK[w.key]||[]).forEach(q=>questions.push({ value: w.label, q }));
+    }
+  });
+
+  return { perValue, strengths, watchouts, watchoutsAreFallback, summary, questions };
+}
+
+const STORE_KEY = "midas_dna_submissions_v1"; // legacy key, unused now that data lives server-side
+
+// ---------------- Helpers (server-backed via /api/submissions) ----------------
+let SUBMISSIONS_CACHE = [];
+function loadData(){ return SUBMISSIONS_CACHE; }
+async function fetchSubmissions(){
+  try{
+    const res = await fetch("/api/submissions", { headers: { "x-admin-code": ADMIN_ACCESS_CODE } });
+    if(!res.ok){ SUBMISSIONS_CACHE = []; return SUBMISSIONS_CACHE; }
+    SUBMISSIONS_CACHE = await res.json();
+  }catch(e){ SUBMISSIONS_CACHE = []; }
+  return SUBMISSIONS_CACHE;
+}
+async function postSubmission(entry){
+  const res = await fetch("/api/submissions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(entry),
+  });
+  if(!res.ok) throw new Error("Failed to save submission");
+  return res.json();
+}
+async function deleteSubmission(id){
+  const res = await fetch("/api/submissions/" + encodeURIComponent(id), {
+    method: "DELETE",
+    headers: { "x-admin-code": ADMIN_ACCESS_CODE },
+  });
+  if(!res.ok) throw new Error("Failed to delete submission");
+}
+async function deleteAllSubmissions(){
+  const res = await fetch("/api/submissions", {
+    method: "DELETE",
+    headers: { "x-admin-code": ADMIN_ACCESS_CODE },
+  });
+  if(!res.ok) throw new Error("Failed to clear submissions");
+}
+
+// Scale is now 4-point (1-4, no neutral midpoint). Per-value score range: 5-20.
+function perValueCategory(score){
+  if(score>=17) return {label:"Very Strong", cls:"badge-green"};
+  if(score>=13) return {label:"Strong", cls:"badge-blue"};
+  if(score>=9) return {label:"Adequate", cls:"badge-amber"};
+  return {label:"Needs Attention", cls:"badge-red"};
+}
+// Total score range: 25-100 (5 values x 5-20 each).
+function totalCategory(score){
+  if(score>=85) return {label:"Very Strong", cls:"badge-green"};
+  if(score>=65) return {label:"Good", cls:"badge-blue"};
+  if(score>=45) return {label:"Mixed", cls:"badge-amber"};
+  return {label:"Not Aligned", cls:"badge-red"};
+}
+
+// Fit-to-MIDAS recommendation: combines the total score with per-value red
+// flags, since a high total can still mask one critical value that is weak.
+function getRecommendation(entry){
+  const perValueCats = VALUES.map(v=>perValueCategory(entry.valueScores[v.key]));
+  const redFlags = perValueCats.filter(c=>c.label==="Needs Attention").length;
+  const totalCat = totalCategory(entry.total).label;
+
+  if(redFlags >= 2 || totalCat === "Not Aligned"){
+    return { label:"Not a Fit with MIDAS", cls:"badge-red",
+      note:"Total score falls in the low category and/or more than one core value falls under Needs Attention. Recommended to discontinue the selection process, or conduct a more thorough evaluation before a final decision is made." };
+  }
+  if(redFlags === 1 || totalCat === "Mixed"){
+    return { label:"Requires Further Consideration", cls:"badge-amber",
+      note:"At least one core value requires further exploration through a behavioral interview before a final decision is made." };
+  }
+  if(totalCat === "Good"){
+    return { label:"Fit — Recommended", cls:"badge-blue",
+      note:"Generally aligned with MIDAS DNA. Recommended to confirm the lowest-scoring core value during the interview stage before finalization." };
+  }
+  return { label:"Fit — Highly Recommended", cls:"badge-green",
+    note:"Strongly aligned with all MIDAS core values. The candidate can proceed to the next stage of the selection process with confidence." };
+}
+
+// ---------------- Render questionnaire form ----------------
+// Items are flattened and shuffled (fresh random order per page load) so the
+// underlying value groupings and reverse-scored items are not visible to
+// respondents — this reduces pattern-matching / social-desirability faking.
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+const qDiv = document.getElementById("questionnaire");
+let FLAT_ITEMS = [];
+VALUES.forEach((v, vi)=>{
+  v.items.forEach((item, ii)=>{ FLAT_ITEMS.push({ vi, ii, t: item.t }); });
+});
+FLAT_ITEMS = shuffle(FLAT_ITEMS);
+
+const table = document.createElement("table");
+table.className = "qtable";
+table.innerHTML = `<thead>
+  <tr class="qnums"><th style="width:auto;text-align:left;">Pernyataan (gunakan skala 1–4 di atas)</th><th>1</th><th>2</th><th>3</th><th>4</th></tr>
+</thead>`;
+const tbody = document.createElement("tbody");
+FLAT_ITEMS.forEach((item, idx)=>{
+  const tr = document.createElement("tr");
+  const name = `q_${item.vi}_${item.ii}`;
+  let radios = "";
+  for(let s=1;s<=4;s++){
+    radios += `<td class="qradio"><input type="radio" name="${name}" value="${s}" required></td>`;
+  }
+  tr.innerHTML = `<td class="qtext"><b>${idx+1}.</b> ${item.t}</td>${radios}`;
+  tbody.appendChild(tr);
+});
+table.appendChild(tbody);
+qDiv.appendChild(table);
+
+// ---------------- Submit handler ----------------
+document.getElementById("submit-btn").addEventListener("click", async ()=>{
+  const name = document.getElementById("f-name").value.trim();
+  if(!name){ alert("Nama wajib diisi."); return; }
+
+  // ensure all questions answered
+  const form = document.getElementById("questionnaire");
+  const allRadioNames = new Set();
+  VALUES.forEach((v,vi)=>v.items.forEach((it,ii)=>allRadioNames.add(`q_${vi}_${ii}`)));
+  for(const n of allRadioNames){
+    if(!form.querySelector(`input[name="${n}"]:checked`)){
+      alert("Mohon lengkapi semua pernyataan sebelum submit.");
+      return;
+    }
+  }
+
+  const valueScores = {};
+  VALUES.forEach((v,vi)=>{
+    let sum = 0;
+    v.items.forEach((it,ii)=>{
+      const val = parseInt(form.querySelector(`input[name="q_${vi}_${ii}"]:checked`).value, 10);
+      sum += it.r ? (5 - val) : val;
+    });
+    valueScores[v.key] = sum;
+  });
+  const total = Object.values(valueScores).reduce((a,b)=>a+b,0);
+
+  const entry = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+    name, role: document.getElementById("f-role").value.trim(),
+    email: document.getElementById("f-email").value.trim(),
+    stage: document.getElementById("f-stage").value,
+    assessor: document.getElementById("f-assessor").value.trim(),
+    date: new Date().toISOString(),
+    valueScores, total,
+  };
+
+  const submitBtn = document.getElementById("submit-btn");
+  submitBtn.disabled = true;
+  try{
+    await postSubmission(entry);
+  }catch(err){
+    alert("Gagal mengirim assessment. Periksa koneksi internet Anda dan coba lagi.");
+    submitBtn.disabled = false;
+    return;
+  }
+  submitBtn.disabled = false;
+
+  document.getElementById("success-banner").style.display = "block";
+  form.reset();
+  document.getElementById("f-name").value = "";
+  document.getElementById("f-role").value = "";
+  document.getElementById("f-email").value = "";
+  document.getElementById("f-assessor").value = "";
+  window.scrollTo({top:0, behavior:"smooth"});
+  setTimeout(()=>{ document.getElementById("success-banner").style.display = "none"; }, 6000);
+});
+
+// ---------------- Tabs ----------------
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click", async ()=>{
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("view-"+btn.dataset.view).classList.add("active");
+    if(btn.dataset.view === "dashboard"){ await fetchSubmissions(); renderDashboard(); }
+  });
+});
+
+// ---------------- Role gate (Kandidat vs Admin) ----------------
+// Simple client-side access gate so candidates only see the assessment form,
+// while HR/Admin unlock the dashboard and internal methodology guide with a
+// passcode. Note: this runs entirely in the browser, so it is a usability
+// safeguard rather than real security — anyone viewing the page source can
+// see the code. For a truly access-controlled multi-user setup, this would
+// need a proper backend with authentication.
+const ADMIN_ACCESS_CODE = "MIDAS2026";
+
+function showApp(){
+  document.getElementById("role-gate").style.display = "none";
+  document.querySelector("nav").style.display = "flex";
+  document.querySelector("main").style.display = "block";
+  document.getElementById("role-switch").style.display = "block";
+}
+
+let currentRole = null;
+
+function enterCandidateMode(){
+  currentRole = "candidate";
+  showApp();
+  document.querySelectorAll(".tab-btn").forEach(b=>{
+    b.style.display = (b.dataset.view === "form") ? "inline-block" : "none";
+  });
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  document.querySelector('.tab-btn[data-view="form"]').classList.add("active");
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.getElementById("view-form").classList.add("active");
+  document.getElementById("admin-only-fields").style.display = "none";
+  document.getElementById("f-stage").value = "Screening Awal";
+  document.getElementById("f-assessor").value = "";
+}
+
+async function enterAdminMode(){
+  currentRole = "admin";
+  showApp();
+  document.querySelectorAll(".tab-btn").forEach(b=>{ b.style.display = "inline-block"; });
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  document.querySelector('.tab-btn[data-view="dashboard"]').classList.add("active");
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.getElementById("view-dashboard").classList.add("active");
+  document.getElementById("admin-only-fields").style.display = "grid";
+  await fetchSubmissions();
+  renderDashboard();
+}
+
+document.getElementById("role-candidate").addEventListener("click", enterCandidateMode);
+document.getElementById("role-admin").addEventListener("click", ()=>{
+  document.getElementById("admin-passcode-box").style.display = "block";
+  document.getElementById("admin-passcode").focus();
+});
+function tryAdminLogin(){
+  const val = document.getElementById("admin-passcode").value.trim();
+  if(val === ADMIN_ACCESS_CODE){
+    enterAdminMode();
+  } else {
+    document.getElementById("admin-passcode-error").style.display = "block";
+  }
+}
+document.getElementById("admin-passcode-submit").addEventListener("click", tryAdminLogin);
+document.getElementById("admin-passcode").addEventListener("keydown", (e)=>{ if(e.key === "Enter") tryAdminLogin(); });
+
+document.getElementById("role-switch").addEventListener("click", ()=>{
+  document.getElementById("role-gate").style.display = "flex";
+  document.querySelector("nav").style.display = "none";
+  document.querySelector("main").style.display = "none";
+  document.getElementById("role-switch").style.display = "none";
+  document.getElementById("admin-passcode-box").style.display = "none";
+  document.getElementById("admin-passcode").value = "";
+  document.getElementById("admin-passcode-error").style.display = "none";
+});
+
+// ---------------- About table ----------------
+const aboutMap = document.getElementById("about-map");
+VALUES.forEach(v=>{
+  const tr = document.createElement("tr");
+  tr.innerHTML = `<td><b>${v.label}</b></td><td>${v.domain}</td><td>${v.rationale}</td>`;
+  aboutMap.appendChild(tr);
+});
+
+// ---------------- Dashboard rendering ----------------
+let aggChart = null, detailChart = null;
+
+// Shared radar-chart options tuned for legibility against the dark Midas
+// theme: bold near-white point labels (value names) and bold gold tick
+// numbers, with subtle gold gridlines instead of Chart.js's default
+// near-invisible light-grey-on-dark styling.
+function radarOptions(){
+  return {
+    scales: {
+      r: {
+        min: 0, max: 20,
+        ticks: {
+          stepSize: 5,
+          color: "#f3f1ea",
+          backdropColor: "rgba(10,10,8,0.65)",
+          font: { weight: "bold", size: 11 },
+        },
+        pointLabels: {
+          color: "#f3f1ea",
+          font: { weight: "bold", size: 12 },
+        },
+        angleLines: { color: "rgba(202,174,101,0.35)" },
+        grid: { color: "rgba(202,174,101,0.25)" },
+      },
+    },
+    plugins: { legend: { display: false } },
+  };
+}
+
+function getFiltered(){
+  const nameQ = document.getElementById("filter-name").value.toLowerCase();
+  const stageQ = document.getElementById("filter-stage").value;
+  const catQ = document.getElementById("filter-cat").value;
+  return loadData().filter(e=>{
+    if(nameQ && !e.name.toLowerCase().includes(nameQ)) return false;
+    if(stageQ && e.stage !== stageQ) return false;
+    if(catQ && getRecommendation(e).label !== catQ) return false;
+    return true;
+  }).sort((a,b)=> new Date(b.date) - new Date(a.date));
+}
+
+function renderDashboard(){
+  const data = getFiltered();
+  const all = loadData();
+
+  document.getElementById("stat-total").textContent = all.length;
+  const avg = all.length ? Math.round(all.reduce((s,e)=>s+e.total,0)/all.length) : 0;
+  document.getElementById("stat-avg").textContent = avg;
+  document.getElementById("stat-strong").textContent = all.filter(e=>getRecommendation(e).label.startsWith("Fit")).length;
+  document.getElementById("stat-low").textContent = all.filter(e=>getRecommendation(e).label==="Not a Fit with MIDAS").length;
+
+  // table
+  const tbody = document.getElementById("table-body");
+  tbody.innerHTML = "";
+  document.getElementById("empty-state").style.display = data.length ? "none" : "block";
+  data.forEach(e=>{
+    const rec = getRecommendation(e);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${e.name}</td>
+      <td>${e.role||"-"}</td>
+      <td>${e.stage}</td>
+      <td>${new Date(e.date).toLocaleDateString("en-US")}</td>
+      <td><b>${e.total}</b>/100</td>
+      <td><span class="badge ${rec.cls}">${rec.label}</span></td>
+      <td><button class="btn btn-outline btn-sm detail-btn" data-id="${e.id}">Details</button>
+          <button class="btn-danger btn-sm del-btn" data-id="${e.id}" style="border-radius:6px;margin-left:6px;">Delete</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll(".detail-btn").forEach(b=>b.addEventListener("click", ()=>openDetail(b.dataset.id)));
+  tbody.querySelectorAll(".del-btn").forEach(b=>b.addEventListener("click", async ()=>{
+    if(confirm("Delete this entry?")){
+      try{
+        await deleteSubmission(b.dataset.id);
+        await fetchSubmissions();
+        renderDashboard();
+      }catch(err){
+        alert("Gagal menghapus data. Coba lagi.");
+      }
+    }
+  }));
+
+  // aggregate radar
+  const labels = VALUES.map(v=>v.label);
+  const avgs = VALUES.map(v=> all.length ? (all.reduce((s,e)=>s+e.valueScores[v.key],0)/all.length) : 0);
+  const ctx = document.getElementById("chart-agg-radar").getContext("2d");
+  if(aggChart) aggChart.destroy();
+  aggChart = new Chart(ctx, {
+    type: "radar",
+    data: { labels, datasets: [{ label: "Average Score (5–20)", data: avgs, backgroundColor: "rgba(202,174,101,0.30)", borderColor: "#CAAE65", borderWidth:2, pointBackgroundColor:"#f3f1ea", pointBorderColor:"#CAAE65" }] },
+    options: radarOptions()
+  });
+}
+
+function openDetail(id){
+  const e = loadData().find(x=>x.id===id);
+  if(!e) return;
+  const profile = buildProfile(e);
+  const rec = getRecommendation(e);
+
+  document.getElementById("modal-name").textContent = e.name;
+  document.getElementById("modal-meta").innerHTML = `${e.role||"-"} &middot; ${e.stage} &middot; ${new Date(e.date).toLocaleString("en-US")} &middot; Reviewed by: ${e.assessor||"-"}<br>Total Score: <b>${e.total}</b>/100`;
+  document.getElementById("modal-rec-badge").className = "badge " + rec.cls;
+  document.getElementById("modal-rec-badge").textContent = "Recommendation: " + rec.label;
+  document.getElementById("modal-rec-note").textContent = rec.note;
+  document.getElementById("modal-summary").textContent = profile.summary;
+
+  const labels = VALUES.map(v=>v.label);
+  const scores = VALUES.map(v=>e.valueScores[v.key]);
+  const ctx = document.getElementById("chart-detail-radar").getContext("2d");
+  if(detailChart) detailChart.destroy();
+  detailChart = new Chart(ctx, {
+    type: "radar",
+    data: { labels, datasets: [{ label: e.name, data: scores, backgroundColor:"rgba(202,174,101,0.30)", borderColor:"#CAAE65", borderWidth:2, pointBackgroundColor:"#f3f1ea", pointBorderColor:"#CAAE65" }] },
+    options: radarOptions()
+  });
+
+  document.getElementById("modal-strengths-watchouts").innerHTML = `
+    <div class="sw-col">
+      <h4>Key Strengths</h4>
+      <ul>${profile.strengths.map(s=>`<li><b>${s.label}</b> — ${s.score}/20 (${s.cat.label})</li>`).join("")}</ul>
+    </div>
+    <div class="sw-col">
+      <h4>Development Areas</h4>
+      <ul>${profile.watchouts.map(w=>`<li><b>${w.label}</b> — ${w.score}/20 (${w.cat.label})${w.concern?"":' <span class="muted-note">— no significant concern; comparatively lowest area</span>'}</li>`).join("")}</ul>
+    </div>
+  `;
+
+  document.getElementById("modal-value-detail").innerHTML = profile.perValue.map(v=>`
+    <div class="value-detail-item">
+      <div class="vd-head"><b>${v.label}</b> <span class="badge ${v.cat.cls}">${v.cat.label}</span> <span class="vd-score">${v.score}/20</span></div>
+      <div class="vd-narrative">${v.narrative}</div>
+    </div>
+  `).join("");
+
+  const qSection = document.getElementById("modal-questions-section");
+  const qList = document.getElementById("modal-questions");
+  if(profile.questions.length){
+    qSection.style.display = "block";
+    qList.innerHTML = profile.questions.map(item=>`<li><b>[${item.value}]</b> ${item.q}</li>`).join("");
+  } else {
+    qSection.style.display = "none";
+  }
+
+  document.getElementById("modal-bg").classList.add("active");
+  document.getElementById("modal-print").onclick = ()=>printSummary(e);
+}
+document.getElementById("modal-close").addEventListener("click", ()=>document.getElementById("modal-bg").classList.remove("active"));
+document.getElementById("modal-bg").addEventListener("click", (ev)=>{ if(ev.target.id==="modal-bg") ev.currentTarget.classList.remove("active"); });
+
+function printSummary(e){
+  const profile = buildProfile(e);
+  const rec = getRecommendation(e);
+  const rows = profile.perValue.map(v=>`<tr><td>${v.label}</td><td>${v.score}/20</td><td>${v.cat.label}</td><td>${v.narrative}</td></tr>`).join("");
+  const strengthsHtml = profile.strengths.map(s=>`<li><b>${s.label}</b> — ${s.score}/20 (${s.cat.label})</li>`).join("");
+  const watchoutsHtml = profile.watchouts.map(w=>`<li><b>${w.label}</b> — ${w.score}/20 (${w.cat.label})${w.concern?"":' <span style="color:#8a8577;font-size:11.5px;">— no significant concern; comparatively lowest area</span>'}</li>`).join("");
+  const questionsHtml = profile.questions.length
+    ? `<h3>Suggested Interview Questions</h3><ul>${profile.questions.map(q=>`<li><b>[${q.value}]</b> ${q.q}</li>`).join("")}</ul>`
+    : "";
+  const w = window.open("", "_blank");
+  w.document.write(`
+    <html><head><title>Report - ${e.name}</title>
+    <style>
+    @page{ size:A4; margin:16mm 18mm; }
+    *{ box-sizing:border-box; }
+    body{font-family:'Plus Jakarta Sans',Arial,Helvetica,sans-serif;padding:28px 32px;color:#1c1a16;max-width:800px;margin:0 auto;line-height:1.55;}
+    .report-logo{width:200px;height:auto;display:block;margin-bottom:18px;}
+    h1{color:#171510;border-bottom:3px solid #CAAE65;padding-bottom:10px;margin:0 0 16px;font-size:21px;break-after:avoid;page-break-after:avoid;}
+    h3{color:#8a6d2f;margin:20px 0 8px;font-size:14px;break-after:avoid;page-break-after:avoid;}
+    p{margin:0 0 10px;}
+    table{border-collapse:collapse;width:100%;margin-top:8px;break-inside:auto;}
+    thead{display:table-header-group;}
+    tr{break-inside:avoid;page-break-inside:avoid;}
+    td,th{border:1px solid #ddd;padding:8px 10px;font-size:12.5px;text-align:left;vertical-align:top;} th{background:#f6f1e4;color:#4a3a17;}
+    .rec{background:#f6f1e4;border-left:4px solid #CAAE65;border-radius:6px;padding:12px 16px;margin-top:14px;break-inside:avoid;page-break-inside:avoid;}
+    .summary{background:#faf8f3;border-left:3px solid #CAAE65;padding:10px 14px;margin-top:14px;font-size:13px;break-inside:avoid;page-break-inside:avoid;}
+    ul{font-size:13px;line-height:1.65;margin:6px 0;padding-left:20px;}
+    li{break-inside:avoid;page-break-inside:avoid;}
+    .cols{display:flex;gap:30px;break-inside:avoid;page-break-inside:avoid;}
+    .cols>div{flex:1;}
+    @media print{
+      body{padding:0;max-width:100%;}
+    }
+    </style>
+    </head><body>
+    <img class="report-logo" alt="Midas Talent Match" width="220" height="63" src="${LOGO_DATA_URI}">
+    <h1>MIDAS DNA Assessment — Results Report</h1>
+    <p><b>Name:</b> ${e.name}<br><b>Role:</b> ${e.role||"-"}<br><b>Stage:</b> ${e.stage}<br>
+    <b>Date:</b> ${new Date(e.date).toLocaleString("en-US")}<br><b>Reviewed by:</b> ${e.assessor||"-"}</p>
+    <p><b>Total Score:</b> ${e.total}/100</p>
+    <div class="rec"><b>Recommendation: ${rec.label}</b><br><span style="font-size:12.5px;">${rec.note}</span></div>
+    <h3>Profile Summary</h3>
+    <div class="summary">${profile.summary}</div>
+    <div class="cols">
+      <div><h3>Key Strengths</h3><ul>${strengthsHtml}</ul></div>
+      <div><h3>Development Areas</h3><ul>${watchoutsHtml}</ul></div>
+    </div>
+    <h3>Core Value Breakdown</h3>
+    <table><thead><tr><th>Core Value</th><th>Score</th><th>Category</th><th>Interpretation</th></tr></thead><tbody>${rows}</tbody></table>
+    ${questionsHtml}
+    <p style="margin-top:24px;font-size:11px;color:#666;">Midas Talent Match — Internal Use Only</p>
+    </body></html>`);
+  w.document.close();
+
+  // The logo is a data-URI image, which some browsers still decode
+  // asynchronously; calling print() immediately can snapshot the page
+  // before it has painted, leaving the logo blank in the printed output.
+  // Wait for the logo to finish loading (with a timeout fallback) before
+  // triggering print.
+  let printed = false;
+  const doPrint = () => { if(!printed){ printed = true; w.print(); } };
+  const logoImg = w.document.querySelector(".report-logo");
+  if(logoImg && !logoImg.complete){
+    logoImg.addEventListener("load", doPrint);
+    logoImg.addEventListener("error", doPrint);
+    setTimeout(doPrint, 1200);
+  } else {
+    setTimeout(doPrint, 150);
+  }
+}
+
+// ---------------- Export CSV ----------------
+document.getElementById("export-csv").addEventListener("click", ()=>{
+  const data = getFiltered();
+  if(!data.length){ alert("No data available to export."); return; }
+  const header = ["Name","Role","Email","Stage","Date","Assessor", ...VALUES.map(v=>v.label), "Total Score","Recommendation"];
+  const rows = data.map(e=>[
+    e.name, e.role, e.email, e.stage, new Date(e.date).toLocaleString("en-US"), e.assessor,
+    ...VALUES.map(v=>e.valueScores[v.key]), e.total, getRecommendation(e).label
+  ]);
+  const csv = [header, ...rows].map(r=>r.map(x=>`"${String(x||"").replace(/"/g,'""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "midas_dna_assessment_results.csv";
+  a.click(); URL.revokeObjectURL(url);
+});
+
+document.getElementById("clear-all").addEventListener("click", async ()=>{
+  if(confirm("Are you sure you want to delete ALL assessment data? This action cannot be undone.")){
+    try{
+      await deleteAllSubmissions();
+      await fetchSubmissions();
+      renderDashboard();
+    }catch(err){
+      alert("Gagal menghapus semua data. Coba lagi.");
+    }
+  }
+});
+
+["filter-name","filter-stage","filter-cat"].forEach(id=>{
+  document.getElementById(id).addEventListener("input", renderDashboard);
+  document.getElementById(id).addEventListener("change", renderDashboard);
+});
+</script>
+</body>
+</html>
