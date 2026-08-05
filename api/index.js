@@ -25,6 +25,8 @@ function ensureSchema() {
     total INTEGER NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
+    ALTER TABLE submissions ADD COLUMN IF NOT EXISTS gender TEXT;
+    ALTER TABLE submissions ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ;
     `);
   }
   return schemaPromise;
@@ -54,11 +56,13 @@ function rowToEntry(r) {
   return {
     id: r.id,
     name: r.name,
+    gender: r.gender || "",
     role: r.role || "",
     email: r.email || "",
     stage: r.stage || "",
     assessor: r.assessor || "",
     date: r.date,
+    startedAt: r.started_at,
     valueScores: r.value_scores,
     total: r.total,
   };
@@ -71,11 +75,11 @@ app.post("/api/submissions", async (req, res) => {
       return res.status(400).json({ error: "Invalid submission payload" });
     }
     await pool.query(
-      `INSERT INTO submissions (id, name, role, email, stage, assessor, date, value_scores, total)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+      `INSERT INTO submissions (id, name, gender, role, email, stage, assessor, date, started_at, value_scores, total)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
       ON CONFLICT (id) DO NOTHING`,
-      [e.id, e.name, e.role || "", e.email || "", e.stage || "", e.assessor || "",
-       e.date || new Date().toISOString(), JSON.stringify(e.valueScores), e.total]
+      [e.id, e.name, e.gender || "", e.role || "", e.email || "", e.stage || "", e.assessor || "",
+       e.date || new Date().toISOString(), e.startedAt || null, JSON.stringify(e.valueScores), e.total]
       );
     res.status(201).json({ ok: true });
   } catch (err) {
@@ -87,7 +91,7 @@ app.post("/api/submissions", async (req, res) => {
 app.get("/api/submissions", requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query(
-      "SELECT id, name, role, email, stage, assessor, date, value_scores, total FROM submissions ORDER BY date DESC"
+      "SELECT id, name, gender, role, email, stage, assessor, date, started_at, value_scores, total FROM submissions ORDER BY date DESC"
       );
     res.json(rows.map(rowToEntry));
   } catch (err) {
