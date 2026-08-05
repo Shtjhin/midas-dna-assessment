@@ -1,0 +1,17 @@
+{
+  "name": "midas-dna-assessment",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MIDAS DNA Assessment - shared online questionnaire + admin dashboard for Midas Talent Match.",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.11.5"
+  }
+}
