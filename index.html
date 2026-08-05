@@ -1062,6 +1062,7 @@ function printSummary(e){
     td,th{border:1px solid #ddd;padding:8px 10px;font-size:12.5px;text-align:left;vertical-align:top;} th{background:#f6f1e4;color:#4a3a17;}
     .rec{background:#f6f1e4;border-left:4px solid #CAAE65;border-radius:6px;padding:12px 16px;margin-top:14px;break-inside:avoid;page-break-inside:avoid;}
     .summary{background:#faf8f3;border-left:3px solid #CAAE65;padding:10px 14px;margin-top:14px;font-size:13px;break-inside:avoid;page-break-inside:avoid;}
+    .chart-block-wrap{break-inside:avoid;page-break-inside:avoid;}
     .chart-block{text-align:center;margin:14px 0;break-inside:avoid;page-break-inside:avoid;}
     .chart-block img{max-width:300px;width:100%;height:auto;}
     ul{font-size:13px;line-height:1.65;margin:6px 0;padding-left:20px;}
@@ -1082,7 +1083,7 @@ function printSummary(e){
     <div class="rec"><b>Recommendation: ${rec.label}</b><br><span style="font-size:12.5px;">${rec.note}</span></div>
     <h3>Profile Summary</h3>
     <div class="summary">${profile.summary}</div>
-    ${chartImg ? `<h3>Core Value Radar</h3><div class="chart-block"><img src="${chartImg}" alt="Core Value Radar Chart"></div>` : ""}
+    ${chartImg ? `<div class="chart-block-wrap"><h3>Core Value Radar</h3><div class="chart-block"><img src="${chartImg}" alt="Core Value Radar Chart"></div></div>` : ""}
     <div class="cols">
       <div><h3>Key Strengths</h3><ul>${strengthsHtml}</ul></div>
       <div><h3>Development Areas</h3><ul>${watchoutsHtml}</ul></div>
