@@ -857,6 +857,38 @@ function radarOptions(){
   };
 }
 
+// The printed report page is light-colored, unlike the dark in-app dashboard,
+// so the on-screen chart (near-white labels) can't be reused directly for
+// print — the labels would render white-on-white and disappear. This is a
+// separate dark-text variant, rendered onto its own off-screen canvas at a
+// larger fixed size so labels sit close to the chart and stay legible once
+// printed/exported to PDF.
+function radarOptionsPrint(){
+  return {
+    animation: false,
+    responsive: false,
+    layout: { padding: 8 },
+    scales: {
+      r: {
+        min: 0, max: 20,
+        ticks: {
+          stepSize: 5,
+          color: "#8a6d2f",
+          backdropColor: "rgba(255,255,255,0.9)",
+          font: { weight: "bold", size: 12 },
+        },
+        pointLabels: {
+          color: "#171510",
+          font: { weight: "bold", size: 13 },
+        },
+        angleLines: { color: "rgba(138,109,47,0.35)" },
+        grid: { color: "rgba(138,109,47,0.3)" },
+      },
+    },
+    plugins: { legend: { display: false } },
+  };
+}
+
 function getFiltered(){
   const nameQ = document.getElementById("filter-name").value.toLowerCase();
   const stageQ = document.getElementById("filter-stage").value;
@@ -990,12 +1022,29 @@ function printSummary(e){
   const questionsHtml = profile.questions.length
     ? `<h3>Suggested Interview Questions</h3><ul>${profile.questions.map(q=>`<li><b>[${q.value}]</b> ${q.q}</li>`).join("")}</ul>`
     : "";
-  // Snapshot the radar chart that's already drawn in the detail modal so the
-  // printed report includes the same diagram instead of a blank gap — the
-  // print window is a separate document and can't render a live Chart.js
-  // canvas of its own.
-  const chartCanvas = document.getElementById("chart-detail-radar");
-  const chartImg = (chartCanvas && chartCanvas.width > 0) ? chartCanvas.toDataURL("image/png") : null;
+  // The print window is a separate document and can't render a live
+  // Chart.js canvas of its own, so we render a dedicated dark-text-on-light
+  // radar chart on an off-screen canvas here and embed it as an image. This
+  // is deliberately a fresh chart (not a snapshot of the dashboard's
+  // dark-theme canvas) — reusing that one printed near-white labels onto a
+  // white page, which made them unreadable and left large-looking gaps
+  // around the chart.
+  const printLabels = VALUES.map(v=>v.label);
+  const printScores = VALUES.map(v=>e.valueScores[v.key]);
+  const printCanvas = document.createElement("canvas");
+  printCanvas.width = 420;
+  printCanvas.height = 420;
+  printCanvas.style.position = "fixed";
+  printCanvas.style.left = "-9999px";
+  document.body.appendChild(printCanvas);
+  const printChart = new Chart(printCanvas.getContext("2d"), {
+    type: "radar",
+    data: { labels: printLabels, datasets: [{ label: e.name, data: printScores, backgroundColor:"rgba(202,174,101,0.35)", borderColor:"#8a6d2f", borderWidth:2, pointBackgroundColor:"#171510", pointBorderColor:"#8a6d2f" }] },
+    options: radarOptionsPrint(),
+  });
+  const chartImg = printCanvas.toDataURL("image/png");
+  printChart.destroy();
+  document.body.removeChild(printCanvas);
   const w = window.open("", "_blank");
   w.document.write(`
     <html><head><title>Report - ${e.name}</title>
