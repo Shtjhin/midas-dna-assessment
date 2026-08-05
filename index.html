@@ -479,10 +479,16 @@ function buildProfile(entry){
   let watchouts = perValue.filter(isConcern);
   let watchoutsAreFallback = false;
   if(watchouts.length===0){
-    // No genuine concern — still surface the relatively lowest-scoring value
-    // as a development area, since no candidate profile is perfect.
-    watchouts = [sorted[sorted.length-1]];
-    watchoutsAreFallback = true;
+    const lowestScore = sorted[sorted.length-1].score;
+    const highestScore = sorted[0].score;
+    // Only surface a "comparatively lowest" development area when there is
+    // an actual gap between values. If every value is tied (e.g. a perfect
+    // or uniformly maxed-out profile), there is nothing genuinely "lowest"
+    // to single out, so we don't force a label onto a full score.
+    if(lowestScore < highestScore){
+      watchouts = [sorted[sorted.length-1]];
+      watchoutsAreFallback = true;
+    }
   }
   watchouts = [...watchouts].sort((a,b)=>a.score-b.score).map(w=>({ ...w, concern: isConcern(w) }));
 
@@ -493,7 +499,9 @@ function buildProfile(entry){
   const summary = `${entry.name}'s MIDAS DNA profile shows key strengths in ${strengthNames}. `
     + (genuineConcerns.length > 0
         ? `Areas of concern that should be explored further at the interview stage include ${genuineConcerns.map(w=>w.label).join(", ")}. `
-        : `No core value shows a significant risk indicator at this stage; as a perfect profile is not a realistic outcome, ${watchoutNames} represents this candidate's comparatively lowest-scoring value and remains worth exploring as a development area. `)
+        : watchouts.length > 0
+          ? `No core value shows a significant risk indicator at this stage; ${watchoutNames} represents this candidate's comparatively lowest-scoring value and remains worth exploring as a development area. `
+          : `No core value shows a significant risk indicator at this stage, and scores are uniformly strong across all core values with no meaningful gap between them. `)
     + `With a total score of ${entry.total}/100, this assessment result points to a recommendation of "${rec.label}".`;
 
   const questions = [];
@@ -996,7 +1004,9 @@ function openDetail(id){
     </div>
     <div class="sw-col">
       <h4>Development Areas</h4>
-      <ul>${profile.watchouts.map(w=>`<li><b>${w.label}</b> — ${w.score}/20 (${w.cat.label})${w.concern?"":' <span class="muted-note">— no significant concern; comparatively lowest area</span>'}</li>`).join("")}</ul>
+      ${profile.watchouts.length
+        ? `<ul>${profile.watchouts.map(w=>`<li><b>${w.label}</b> — ${w.score}/20 (${w.cat.label})${w.concern?"":' <span class="muted-note">— no significant concern; comparatively lowest area</span>'}</li>`).join("")}</ul>`
+        : `<p class="muted-note" style="margin:4px 0 0;">No specific development area — scores are uniformly strong across all core values.</p>`}
     </div>
   `;
 
@@ -1027,7 +1037,9 @@ function printSummary(e){
   const rec = getRecommendation(e);
   const rows = profile.perValue.map(v=>`<tr><td>${v.label}</td><td>${v.score}/20</td><td>${v.cat.label}</td><td>${v.narrative}</td></tr>`).join("");
   const strengthsHtml = profile.strengths.map(s=>`<li><b>${s.label}</b> — ${s.score}/20 (${s.cat.label})</li>`).join("");
-  const watchoutsHtml = profile.watchouts.map(w=>`<li><b>${w.label}</b> — ${w.score}/20 (${w.cat.label})${w.concern?"":' <span style="color:#8a8577;font-size:11.5px;">— no significant concern; comparatively lowest area</span>'}</li>`).join("");
+  const watchoutsHtml = profile.watchouts.length
+    ? profile.watchouts.map(w=>`<li><b>${w.label}</b> — ${w.score}/20 (${w.cat.label})${w.concern?"":' <span style="color:#8a8577;font-size:11.5px;">— no significant concern; comparatively lowest area</span>'}</li>`).join("")
+    : `<li style="color:#8a8577;font-size:11.5px;">No specific development area — scores are uniformly strong across all core values.</li>`;
   const questionsHtml = profile.questions.length
     ? `<h3>Suggested Interview Questions</h3><ul>${profile.questions.map(q=>`<li><b>[${q.value}]</b> ${q.q}</li>`).join("")}</ul>`
     : "";
