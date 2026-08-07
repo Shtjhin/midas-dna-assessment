@@ -54,6 +54,7 @@
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
   .row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;}
+  .row5{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:14px;}
   .scale-table{border-collapse:collapse;margin:8px 0 20px;}
   .scale-table td{border:1px solid var(--border-soft);padding:8px 16px;text-align:center;font-size:13px;}
   .scale-table tr:first-child td{background:var(--card-alt);color:var(--gold);font-weight:600;}
@@ -109,7 +110,7 @@
   .vd-score{color:var(--muted);font-size:12.5px;margin-left:auto;}
   .vd-narrative{font-size:13px;color:var(--text);line-height:1.5;}
   #modal-questions{margin:8px 0 0;padding-left:18px;font-size:13px;line-height:1.7;}
-  @media (max-width:720px){.row2,.row3,.row4{grid-template-columns:1fr;}.flexcharts{grid-template-columns:1fr;}}
+  @media (max-width:720px){.row2,.row3,.row4,.row5{grid-template-columns:1fr;}.flexcharts{grid-template-columns:1fr;}}
   .mini-table{width:100%;border-collapse:collapse;margin-top:10px;}
   .mini-table th,.mini-table td{border:1px solid var(--border-soft);padding:6px 8px;font-size:12.5px;}
   .mini-table th{background:var(--card-alt);color:var(--gold);}
@@ -159,8 +160,9 @@
   <div id="assessment-form-wrap">
     <div class="card">
       <h2>Candidate / Employee Information</h2>
-      <div class="row4">
-        <div><label>Full Name *</label><input type="text" id="f-name" placeholder="Name"></div>
+      <div class="row5">
+        <div><label>First Name *</label><input type="text" id="f-first-name" placeholder="First name"></div>
+        <div><label>Last Name *</label><input type="text" id="f-last-name" placeholder="Last name"></div>
         <div>
           <label>Gender *</label>
           <select id="f-gender">
@@ -695,9 +697,12 @@ updateQNav();
 let isSubmitting = false;
 document.getElementById("submit-btn").addEventListener("click", async ()=>{
   if(isSubmitting) return;
-  const name = document.getElementById("f-name").value.trim();
+  const firstName = document.getElementById("f-first-name").value.trim();
+  const lastName = document.getElementById("f-last-name").value.trim();
+  const name = [firstName, lastName].filter(Boolean).join(" ");
   const gender = document.getElementById("f-gender").value;
-  if(!name){ alert("Full name is required."); return; }
+  if(!firstName){ alert("First name is required."); return; }
+  if(!lastName){ alert("Last name is required."); return; }
   if(!gender){ alert("Please select a gender."); return; }
 
   // ensure all questions answered (final safety net on top of per-section validation)
