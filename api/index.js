@@ -180,6 +180,20 @@ app.get("/api/profiling", requireAdmin, async (req, res) => {
   }
 });
 
+// Public, minimal: tells the personal Profiling link whether the id is valid / already done.
+app.get("/api/profiling-status/:id", async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT (SELECT COUNT(*) FROM submissions WHERE id=$1) AS s, (SELECT COUNT(*) FROM profiling_results WHERE candidate_id=$1) AS p",
+      [req.params.id]
+    );
+    res.json({ exists: Number(rows[0].s) > 0, done: Number(rows[0].p) > 0 });
+  } catch (err) {
+    console.error("GET /api/profiling-status failed:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 app.get("/api/profiling-profiles", requireAdmin, (req, res) => res.json(PROFILES));
 
 app.get("/healthz", (req, res) => res.json({ ok: true }));
