@@ -1058,7 +1058,7 @@ function pfProfileHtml(type){
 function pfSectionHtml(id, forPrint){
   const r = PROFILING_BY_ID[id];
   const wrapOpen = forPrint ? '<div class="pf-section"><h3>Profiling Test</h3>' : '<h3>Profiling Test</h3><div>';
-  if(!r) return forPrint ? "" : `${wrapOpen}<p class="muted-note">Profiling Test belum diselesaikan peserta ini.</p><button class="btn btn-outline btn-sm" id="pf-copy-link" data-id="${pfEsc(id)}">Salin link Profiling</button><p class="muted-note" style="margin-top:6px;">Link pribadi untuk peserta ini. Kirim langsung ke orangnya; hanya kiriman pertama yang tersimpan.</p></div>`;
+  if(!r) return forPrint ? "" : `${wrapOpen}<p class="muted-note">Profiling Test belum diselesaikan peserta ini.</p><input type="text" id="pf-link-input" readonly value="${pfEsc(location.origin + "/?pt=" + encodeURIComponent(id))}" style="margin-bottom:8px;"><button class="btn btn-outline btn-sm" id="pf-copy-link">Salin link Profiling</button><p class="muted-note" style="margin-top:6px;">Link pribadi untuk peserta ini. Kirim langsung ke orangnya; hanya kiriman pertama yang tersimpan.</p></div>`;
   const hasX = r.type.includes("X");
   return `${wrapOpen}
     <div class="pf-type">${pfEsc(r.type)}</div>
@@ -1376,10 +1376,15 @@ function openDetail(id){
   document.getElementById("modal-profiling").innerHTML = pfSectionHtml(e.id);
   const copyBtn = document.getElementById("pf-copy-link");
   if(copyBtn){
+    const linkInput = document.getElementById("pf-link-input");
+    linkInput.onclick = ()=>linkInput.select();
     copyBtn.onclick = async ()=>{
-      const link = location.origin + "/?pt=" + encodeURIComponent(copyBtn.dataset.id);
-      try{ await navigator.clipboard.writeText(link); copyBtn.textContent = "Link tersalin"; }
-      catch(err){ window.prompt("Salin link ini:", link); }
+      linkInput.focus(); linkInput.select();
+      let ok = false;
+      try{ await navigator.clipboard.writeText(linkInput.value); ok = true; }catch(err){}
+      if(!ok){ try{ ok = document.execCommand("copy"); }catch(err){} }
+      copyBtn.textContent = ok ? "Link tersalin" : "Blok link di atas lalu Cmd/Ctrl+C";
+      setTimeout(()=>{ copyBtn.textContent = "Salin link Profiling"; }, 2500);
     };
   }
   document.getElementById("modal-bg").classList.add("active");
