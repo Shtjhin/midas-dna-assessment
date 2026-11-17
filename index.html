@@ -1058,7 +1058,7 @@ function pfProfileHtml(type){
 function pfSectionHtml(id, forPrint){
   const r = PROFILING_BY_ID[id];
   const wrapOpen = forPrint ? '<div class="pf-section"><h3>Profiling Test</h3>' : '<h3>Profiling Test</h3><div>';
-  if(!r) return forPrint ? "" : `${wrapOpen}<p class="muted-note">Profiling Test belum diselesaikan peserta ini.</p></div>`;
+  if(!r) return forPrint ? "" : `${wrapOpen}<p class="muted-note">Profiling Test belum diselesaikan peserta ini.</p><button class="btn btn-outline btn-sm" id="pf-copy-link" data-id="${pfEsc(id)}">Salin link Profiling</button><p class="muted-note" style="margin-top:6px;">Link pribadi untuk peserta ini. Kirim langsung ke orangnya; hanya kiriman pertama yang tersimpan.</p></div>`;
   const hasX = r.type.includes("X");
   return `${wrapOpen}
     <div class="pf-type">${pfEsc(r.type)}</div>
@@ -1130,6 +1130,38 @@ async function enterAdminMode(){
 }
 
 document.getElementById("role-candidate").addEventListener("click", enterCandidateMode);
+
+// ---- Personal link (?pt=<candidate id>): Profiling Test for an existing DNA record ----
+async function enterProfilingLinkMode(id){
+  currentRole = "candidate";
+  showApp();
+  document.querySelectorAll(".tab-btn").forEach(b=>{ b.style.display = (b.dataset.view === "form") ? "inline-block" : "none"; });
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  document.querySelector('.tab-btn[data-view="form"]').classList.add("active");
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.getElementById("view-form").classList.add("active");
+  document.getElementById("assessment-form-wrap").style.display = "none";
+  let status = null;
+  try{
+    const res = await fetch("/api/profiling-status/" + encodeURIComponent(id));
+    if(res.ok) status = await res.json();
+  }catch(e){}
+  const closing = document.getElementById("closing-card");
+  if(!status || !status.exists){
+    closing.innerHTML = '<h2 style="margin-bottom:10px;">Tautan tidak valid</h2><p style="color:var(--muted);font-size:14.5px;max-width:480px;margin:0 auto;line-height:1.6;">Tautan ini tidak dapat digunakan. Silakan hubungi Midas Talent Match.</p>';
+    closing.style.display = "block";
+    return;
+  }
+  if(status.done){ closing.style.display = "block"; return; }
+  const pending = pfLoadPending();
+  if(pending && pending.id === id && typeof pending.answers === "object"){ pfState = pending; pfOpen(); }
+  else { pfBegin(id); }
+}
+(function(){
+  const id = new URLSearchParams(location.search).get("pt");
+  if(id) enterProfilingLinkMode(id);
+})();
+
 document.getElementById("admin-login-link").addEventListener("click", ()=>{
   document.getElementById("admin-passcode-box").style.display = "block";
   document.getElementById("admin-passcode").focus();
@@ -1342,6 +1374,14 @@ function openDetail(id){
   }
 
   document.getElementById("modal-profiling").innerHTML = pfSectionHtml(e.id);
+  const copyBtn = document.getElementById("pf-copy-link");
+  if(copyBtn){
+    copyBtn.onclick = async ()=>{
+      const link = location.origin + "/?pt=" + encodeURIComponent(copyBtn.dataset.id);
+      try{ await navigator.clipboard.writeText(link); copyBtn.textContent = "Link tersalin"; }
+      catch(err){ window.prompt("Salin link ini:", link); }
+    };
+  }
   document.getElementById("modal-bg").classList.add("active");
   document.getElementById("modal-print").onclick = ()=>printSummary(e);
 }
