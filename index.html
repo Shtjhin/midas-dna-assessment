@@ -115,6 +115,31 @@
   .mini-table th,.mini-table td{border:1px solid var(--border-soft);padding:6px 8px;font-size:12.5px;}
   .mini-table th{background:var(--card-alt);color:var(--gold);}
   .footer-note{font-size:12px;color:var(--muted);text-align:center;margin-top:10px;}
+
+  /* Profiling Test (part 2) */
+  .pf-scale{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0 18px;font-size:12px;color:var(--muted);text-align:center;}
+  .pf-q{border-top:1px solid var(--border-soft);padding:16px 0;}
+  .pf-qtext{font-size:15px;line-height:1.55;margin-bottom:12px;}
+  .pf-qnum{color:var(--gold);font-weight:700;margin-right:4px;}
+  .pf-opts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  .pf-opt{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:64px;padding:8px 4px;border:1.5px solid var(--border-soft);border-radius:10px;background:var(--card-alt);cursor:pointer;text-align:center;margin:0;font-weight:500;}
+  .pf-opt input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer;}
+  .pf-opt .n{font-size:20px;font-weight:700;color:var(--text);}
+  .pf-opt .t{font-size:10.5px;line-height:1.2;color:var(--muted);}
+  .pf-opt.sel{background:var(--gold);border-color:var(--gold);}
+  .pf-opt.sel .n,.pf-opt.sel .t{color:#171510;}
+  .pf-opt:focus-within{outline:2px solid var(--gold-light);outline-offset:2px;}
+  .pf-bar-row{display:grid;grid-template-columns:22px 1fr 22px 150px;gap:8px;align-items:center;margin:8px 0;font-size:13px;}
+  .pf-pole{text-align:center;font-weight:700;color:var(--gold);}
+  .pf-track{position:relative;height:12px;background:var(--card-alt);border:1px solid var(--border-soft);border-radius:6px;}
+  .pf-mid{position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:var(--muted);}
+  .pf-fill{position:absolute;top:0;bottom:0;background:var(--gold);border-radius:6px;}
+  .pf-type{font-size:30px;font-weight:800;letter-spacing:3px;color:var(--gold);margin:4px 0 8px;}
+  .pf-disclaimer{background:var(--card-alt);border-left:3px solid var(--amber);padding:8px 12px;font-size:12.5px;color:var(--muted);margin:10px 0 14px;}
+  .pf-profile h4{margin:14px 0 4px;color:var(--gold);font-size:13.5px;}
+  .pf-profile ul{margin:0;padding-left:18px;font-size:13px;line-height:1.6;}
+  .pf-profile p{font-size:13px;line-height:1.6;margin:0 0 6px;}
+  @media (max-width:720px){.pf-bar-row{grid-template-columns:20px 1fr 20px;}.pf-bar-txt{grid-column:1 / -1;}}
   .success-banner{background:var(--green-bg);color:var(--green);border:1px solid rgba(52,211,153,0.35);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:14px;font-weight:600;display:none;}
 </style>
 </head>
@@ -216,6 +241,26 @@
     <button class="btn btn-gold" id="submit-btn" style="width:100%;padding:14px;font-size:15px;display:none;">Submit Assessment</button>
   </div>
 
+  <div id="profiling-wrap" style="display:none;">
+    <div class="card" id="pf-intro">
+      <h2>Profiling Test</h2>
+      <p style="font-size:14.5px;line-height:1.6;">32 pernyataan, sekitar 8 menit. Pilih yang paling mendekati. Jawab sesuai kebiasaan alami Anda, bukan yang ideal.</p>
+      <p style="color:var(--muted);font-size:13px;line-height:1.6;">Jawaban Anda disimpan oleh Midas Talent Match untuk keperluan asesmen dan pengembangan referensi internal.</p>
+      <button class="btn btn-gold" id="pf-start" style="width:100%;padding:14px;font-size:15px;">Mulai</button>
+    </div>
+    <div class="card" id="pf-test" style="display:none;">
+      <h2>Profiling Test</h2>
+      <div class="pf-scale"><div><b>1</b><br>Sangat tidak setuju</div><div><b>2</b><br>Tidak setuju</div><div><b>3</b><br>Setuju</div><div><b>4</b><br>Sangat setuju</div></div>
+      <div id="pf-questions"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:10px;">
+        <button class="btn btn-outline btn-sm" id="pf-back" style="visibility:hidden;">Kembali</button>
+        <span id="pf-progress" style="color:var(--muted);font-size:13px;text-align:center;"></span>
+        <button class="btn btn-gold btn-sm" id="pf-next">Lanjut</button>
+      </div>
+      <button class="btn btn-gold" id="pf-submit" style="width:100%;padding:14px;font-size:15px;display:none;margin-top:16px;">Kirim</button>
+    </div>
+  </div>
+
   <div id="closing-card" class="card" style="display:none;text-align:center;padding:48px 24px;">
     <h2 style="margin-bottom:10px;">Thank You</h2>
     <p style="color:var(--muted);font-size:14.5px;max-width:480px;margin:0 auto;line-height:1.6;">Your responses have been submitted successfully. Our team will review this assessment as part of the selection process. You may now close this window.</p>
@@ -261,10 +306,11 @@
       <div style="overflow-x:auto;">
         <table class="datatable" id="data-table">
           <thead>
-            <tr><th>Name</th><th>Gender</th><th>Role</th><th>Stage</th><th>Date</th><th>Total Score</th><th>Recommendation</th><th>Action</th></tr>
+            <tr><th>Name</th><th>Gender</th><th>Role</th><th>Stage</th><th>Date</th><th>Total Score</th><th>Recommendation</th><th>Profiling</th><th>Action</th></tr>
           </thead>
           <tbody id="table-body"></tbody>
         </table>
+        <p class="footer-note" style="text-align:left;margin-top:12px;">Profiling Test: bukan MBTI resmi, belum tervalidasi, tidak boleh jadi satu-satunya dasar keputusan. Gunakan untuk bahan diskusi.</p>
         <div class="empty" id="empty-state">No data yet. Complete an assessment in the "Isi Assessment" tab to start collecting data.</div>
       </div>
     </div>
@@ -320,6 +366,7 @@
       <h3>Suggested Interview Questions</h3>
       <ul id="modal-questions"></ul>
     </div>
+    <div id="modal-profiling"></div>
     <div style="margin-top:18px;text-align:right;">
       <button class="btn btn-outline btn-sm" id="modal-print">Print Full Report</button>
     </div>
@@ -526,6 +573,7 @@ async function fetchSubmissions(){
     const res = await fetch("/api/submissions", { headers: { "x-admin-code": ADMIN_ACCESS_CODE } });
     if(!res.ok){ SUBMISSIONS_CACHE = []; return SUBMISSIONS_CACHE; }
     SUBMISSIONS_CACHE = await res.json();
+    await fetchProfiling();
   }catch(e){ SUBMISSIONS_CACHE = []; }
   return SUBMISSIONS_CACHE;
 }
@@ -756,9 +804,269 @@ document.getElementById("submit-btn").addEventListener("click", async ()=>{
   // not just reset/re-shown, because leaving it interactive is exactly what
   // allowed the duplicate-submission bug in the first place.
   document.getElementById("assessment-form-wrap").style.display = "none";
+  pfBegin(entry.id);
+  window.scrollTo({top:0, behavior:"smooth"});
+});
+
+// ================= Profiling Test (part 2, internal) =================
+// PF-SCORING-START
+const PF_VERSION = "profiling-v1";
+const PF_ITEMS = [
+  {"id":"q01","dim":"EI","pole":"E","text":"Setelah seharian bertemu banyak orang, saya merasa lebih bersemangat daripada sebelumnya."},
+  {"id":"q02","dim":"EI","pole":"I","text":"Saya lebih mudah menemukan ide dengan berpikir sendiri terlebih dahulu."},
+  {"id":"q03","dim":"EI","pole":"E","text":"Di acara yang dipenuhi orang asing, saya biasanya yang lebih dulu memulai percakapan."},
+  {"id":"q04","dim":"EI","pole":"I","text":"Pada akhir pekan yang kosong, saya cenderung memilih kegiatan sendirian."},
+  {"id":"q05","dim":"EI","pole":"I","text":"Setelah seharian bertemu banyak orang, saya merasa lelah dan perlu menyendiri."},
+  {"id":"q06","dim":"EI","pole":"E","text":"Saya lebih mudah menemukan ide dengan mendiskusikannya langsung dengan orang lain."},
+  {"id":"q07","dim":"EI","pole":"I","text":"Di acara yang dipenuhi orang asing, saya biasanya menunggu orang lain mengajak bicara lebih dulu."},
+  {"id":"q08","dim":"EI","pole":"E","text":"Pada akhir pekan yang kosong, saya cenderung mencari kegiatan bersama orang lain."},
+  {"id":"q09","dim":"SN","pole":"S","text":"Saat menghadapi masalah yang belum pernah saya alami, saya lebih dulu mencari cara yang pernah berhasil sebelumnya."},
+  {"id":"q10","dim":"SN","pole":"N","text":"Saya sering sudah bisa menangkap gambaran utuh dari beberapa fakta penting saja."},
+  {"id":"q11","dim":"SN","pole":"S","text":"Saya merasa puas menikmati dan memanfaatkan hal-hal yang sudah ada."},
+  {"id":"q12","dim":"SN","pole":"N","text":"Saya cenderung meragukan cara yang sudah biasa dipakai, meski banyak orang melakukannya."},
+  {"id":"q13","dim":"SN","pole":"N","text":"Saat menghadapi masalah yang belum pernah saya alami, saya lebih dulu memikirkan cara baru yang belum pernah dicoba."},
+  {"id":"q14","dim":"SN","pole":"S","text":"Sebelum menyimpulkan sesuatu, saya merasa perlu mengumpulkan fakta selengkap mungkin."},
+  {"id":"q15","dim":"SN","pole":"N","text":"Saya mudah kehilangan semangat bila tidak ada hal baru yang bisa dinantikan."},
+  {"id":"q16","dim":"SN","pole":"S","text":"Saya cenderung mempercayai cara dan kebiasaan yang sudah lama dipakai banyak orang."},
+  {"id":"q17","dim":"TF","pole":"T","text":"Bila keputusan yang paling masuk akal secara logika akan mengecewakan seseorang, saya tetap mengambil keputusan itu."},
+  {"id":"q18","dim":"TF","pole":"F","text":"Saat menilai penampilan seorang teman, saya memberi bobot besar pada usaha dan kondisinya, bukan hanya hasil akhirnya."},
+  {"id":"q19","dim":"TF","pole":"T","text":"Saat dua pihak berselisih, saya mencari pihak mana yang argumennya paling benar."},
+  {"id":"q20","dim":"TF","pole":"F","text":"Saya lebih nyaman disebut pengertian daripada disebut objektif."},
+  {"id":"q21","dim":"TF","pole":"F","text":"Bila keputusan yang paling masuk akal secara logika akan mengecewakan seseorang, saya cenderung mencari cara lain agar orang itu tidak kecewa."},
+  {"id":"q22","dim":"TF","pole":"T","text":"Saat menilai penampilan seorang teman, saya berpegang pada hasil akhirnya meski saya tahu ia sudah berusaha keras."},
+  {"id":"q23","dim":"TF","pole":"F","text":"Saat dua pihak berselisih, saya mencari jalan agar hubungan keduanya tetap baik."},
+  {"id":"q24","dim":"TF","pole":"T","text":"Saya lebih nyaman disebut objektif daripada disebut pengertian."},
+  {"id":"q25","dim":"JP","pole":"J","text":"Saya menyusun jadwal atau daftar tugas sebelum mulai mengerjakan sesuatu."},
+  {"id":"q26","dim":"JP","pole":"P","text":"Saya lebih suka menunda keputusan sampai informasinya lebih lengkap."},
+  {"id":"q27","dim":"JP","pole":"J","text":"Saat bepergian, saya menyiapkan rencana perjalanan lebih dulu."},
+  {"id":"q28","dim":"JP","pole":"P","text":"Saya lebih nyaman menyelesaikan persiapan suatu acara atau rencana mendekati harinya."},
+  {"id":"q29","dim":"JP","pole":"P","text":"Saya langsung mulai mengerjakan sesuatu lalu menyusun langkahnya sambil jalan."},
+  {"id":"q30","dim":"JP","pole":"J","text":"Saya lebih suka memutuskan sesuatu sesegera mungkin agar tidak menggantung."},
+  {"id":"q31","dim":"JP","pole":"P","text":"Saat bepergian, saya memutuskan kegiatan sesuai keadaan di tempat."},
+  {"id":"q32","dim":"JP","pole":"J","text":"Saya lebih nyaman bila persiapan suatu acara atau rencana selesai jauh sebelum harinya."}
+];
+const PF_ORDER = ["q01", "q09", "q17", "q25", "q02", "q10", "q18", "q26", "q03", "q11", "q19", "q27", "q04", "q12", "q20", "q28", "q05", "q13", "q21", "q29", "q06", "q14", "q22", "q30", "q07", "q15", "q23", "q31", "q08", "q16", "q24", "q32"];
+const PF_POLES = { EI:["E","I"], SN:["S","N"], TF:["T","F"], JP:["J","P"] };
+const PF_DIMS = ["EI","SN","TF","JP"];
+const PF_VALUE_MAP = { 1:-3, 2:-1, 3:1, 4:3 };
+function pfStrength(score){
+  const a = Math.abs(score);
+  if(a===0) return "seimbang";
+  if(a<=6) return "tipis";
+  if(a<=16) return "sedang";
+  return "jelas";
+}
+// answers: { q01: 1..4, ... q32 }. Dimension score range -24..+24.
+function pfScore(answers){
+  const scores = { EI:0, SN:0, TF:0, JP:0 };
+  PF_ITEMS.forEach(it=>{
+    const v = PF_VALUE_MAP[answers[it.id]];
+    scores[it.dim] += (it.pole===PF_POLES[it.dim][0]) ? v : -v;
+  });
+  let type = "";
+  PF_DIMS.forEach(d=>{
+    const s = scores[d];
+    type += s>0 ? PF_POLES[d][0] : (s<0 ? PF_POLES[d][1] : "X");
+  });
+  return { scores, type };
+}
+// PF-SCORING-END
+
+const PF_STORE_KEY = "midas_profiling_pending_v1";
+const PF_PAGE_SIZE = 8;
+const PF_TOTAL_PAGES = PF_ORDER.length / PF_PAGE_SIZE;
+const PF_LABELS = ["Sangat tidak setuju","Tidak setuju","Setuju","Sangat setuju"];
+const PF_BY_ID = {};
+PF_ITEMS.forEach(i=>{ PF_BY_ID[i.id] = i; });
+let pfState = null; // { id, answers:{}, page, started }
+
+function pfSave(){ try{ localStorage.setItem(PF_STORE_KEY, JSON.stringify(pfState)); }catch(e){} }
+function pfLoadPending(){ try{ const s = localStorage.getItem(PF_STORE_KEY); return s ? JSON.parse(s) : null; }catch(e){ return null; } }
+function pfClearPending(){ try{ localStorage.removeItem(PF_STORE_KEY); }catch(e){} }
+function pfEsc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+(function pfBuildQuestions(){
+  const box = document.getElementById("pf-questions");
+  for(let p=0;p<PF_TOTAL_PAGES;p++){
+    const page = document.createElement("div");
+    page.className = "pf-page";
+    page.dataset.page = p;
+    page.style.display = "none";
+    for(let i=0;i<PF_PAGE_SIZE;i++){
+      const n = p*PF_PAGE_SIZE + i;
+      const it = PF_BY_ID[PF_ORDER[n]];
+      const q = document.createElement("div");
+      q.className = "pf-q";
+      q.innerHTML = `<div class="pf-qtext"><span class="pf-qnum">${n+1}.</span>${pfEsc(it.text)}</div>
+        <div class="pf-opts">${[1,2,3,4].map(v=>`<label class="pf-opt"><input type="radio" name="pf_${it.id}" value="${v}"><span class="n">${v}</span><span class="t">${PF_LABELS[v-1]}</span></label>`).join("")}</div>`;
+      page.appendChild(q);
+    }
+    box.appendChild(page);
+  }
+  box.addEventListener("change", (ev)=>{
+    const input = ev.target;
+    if(!input.name || !input.name.startsWith("pf_") || !pfState) return;
+    const id = input.name.slice(3);
+    pfState.answers[id] = parseInt(input.value, 10);
+    input.closest(".pf-opts").querySelectorAll(".pf-opt").forEach(l=>l.classList.toggle("sel", l.contains(input) && input.checked));
+    pfSave();
+    pfUpdateNav();
+  });
+})();
+
+function pfAnsweredCount(){ return PF_ORDER.filter(id=>pfState.answers[id]).length; }
+function pfPageAnswered(p){
+  for(let i=0;i<PF_PAGE_SIZE;i++){ if(!pfState.answers[PF_ORDER[p*PF_PAGE_SIZE+i]]) return false; }
+  return true;
+}
+function pfUpdateNav(){
+  const p = pfState.page;
+  document.getElementById("pf-progress").textContent = `Halaman ${p+1} dari ${PF_TOTAL_PAGES} - ${pfAnsweredCount()} dari ${PF_ORDER.length} terjawab`;
+  document.getElementById("pf-back").style.visibility = p>0 ? "visible" : "hidden";
+  const last = p===PF_TOTAL_PAGES-1;
+  document.getElementById("pf-next").style.display = last ? "none" : "inline-block";
+  document.getElementById("pf-submit").style.display = last ? "block" : "none";
+}
+function pfShowPage(p){
+  pfState.page = p;
+  document.querySelectorAll("#pf-questions .pf-page").forEach(el=>{ el.style.display = (parseInt(el.dataset.page,10)===p) ? "block" : "none"; });
+  pfSave();
+  pfUpdateNav();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function pfShowTest(){
+  document.getElementById("pf-intro").style.display = "none";
+  document.getElementById("pf-test").style.display = "block";
+  Object.keys(pfState.answers).forEach(id=>{
+    const r = document.querySelector(`input[name="pf_${id}"][value="${pfState.answers[id]}"]`);
+    if(r){ r.checked = true; r.closest(".pf-opt").classList.add("sel"); }
+  });
+  pfShowPage(Math.min(Math.max(pfState.page||0,0), PF_TOTAL_PAGES-1));
+}
+function pfOpen(){
+  document.getElementById("profiling-wrap").style.display = "block";
+  if(pfState.started){ pfShowTest(); }
+  else{
+    document.getElementById("pf-intro").style.display = "block";
+    document.getElementById("pf-test").style.display = "none";
+  }
+}
+function pfBegin(candidateId){
+  pfState = { id: candidateId, answers:{}, page:0, started:false };
+  pfSave();
+  pfOpen();
+}
+// If a candidate refreshes mid-way, the DNA is already saved; resume Profiling Test.
+function pfResumeIfPending(){
+  const s = pfLoadPending();
+  if(!s || !s.id || typeof s.answers!=="object") return;
+  pfState = s;
+  document.getElementById("assessment-form-wrap").style.display = "none";
+  pfOpen();
+}
+document.getElementById("pf-start").addEventListener("click", ()=>{
+  pfState.started = true;
+  pfSave();
+  pfShowTest();
+});
+document.getElementById("pf-back").addEventListener("click", ()=>{ if(pfState.page>0) pfShowPage(pfState.page-1); });
+document.getElementById("pf-next").addEventListener("click", ()=>{
+  if(!pfPageAnswered(pfState.page)){ alert("Mohon jawab semua pernyataan di halaman ini sebelum melanjutkan."); return; }
+  if(pfState.page < PF_TOTAL_PAGES-1) pfShowPage(pfState.page+1);
+});
+async function postProfiling(payload){
+  const res = await fetch("/api/profiling", {
+    method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(payload)
+  });
+  if(!res.ok) throw new Error("Failed to save profiling");
+  return res.json();
+}
+let pfSubmitting = false;
+document.getElementById("pf-submit").addEventListener("click", async ()=>{
+  if(pfSubmitting) return;
+  if(!pfPageAnswered(pfState.page) || pfAnsweredCount()<PF_ORDER.length){
+    alert("Mohon jawab semua pernyataan sebelum mengirim.");
+    return;
+  }
+  const answers = {};
+  PF_ITEMS.forEach(i=>{ answers[i.id] = pfState.answers[i.id]; });
+  const res = pfScore(answers);
+  const payload = {
+    candidateId: pfState.id, answers, scores: res.scores, type: res.type,
+    completedAt: new Date().toISOString(), testVersion: PF_VERSION
+  };
+  pfSubmitting = true;
+  const btn = document.getElementById("pf-submit");
+  btn.disabled = true;
+  try{ await postProfiling(payload); }
+  catch(err){
+    alert("Gagal mengirim jawaban. Periksa koneksi internet Anda lalu coba lagi.");
+    btn.disabled = false; pfSubmitting = false;
+    return;
+  }
+  pfClearPending();
+  pfState = null;
+  document.getElementById("profiling-wrap").style.display = "none";
   document.getElementById("closing-card").style.display = "block";
   window.scrollTo({top:0, behavior:"smooth"});
 });
+
+// ---- Admin side ----
+let PROFILING_BY_ID = {};
+let PF_PROFILES = null;
+async function fetchProfiling(){
+  try{
+    const res = await fetch("/api/profiling", { headers: { "x-admin-code": ADMIN_ACCESS_CODE } });
+    PROFILING_BY_ID = {};
+    if(res.ok){ (await res.json()).forEach(r=>{ PROFILING_BY_ID[r.candidateId] = r; }); }
+    if(!PF_PROFILES){
+      const r2 = await fetch("/api/profiling-profiles", { headers: { "x-admin-code": ADMIN_ACCESS_CODE } });
+      if(r2.ok) PF_PROFILES = await r2.json();
+    }
+  }catch(e){}
+}
+function pfSigned(n){ return n>0 ? "+"+n : String(n); }
+function pfSummaryCell(e){
+  const r = PROFILING_BY_ID[e.id];
+  if(!r) return '<span class="muted-note">-</span>';
+  return `<b>${pfEsc(r.type)}</b><div class="muted-note">${PF_DIMS.map(d=>`${d} ${pfSigned(r.scores[d])} ${pfStrength(r.scores[d])}`).join("<br>")}</div>`;
+}
+function pfCsvCells(id){
+  const r = PROFILING_BY_ID[id];
+  if(!r) return [...PF_ITEMS.map(()=>""), "", "", "", "", "", ""];
+  return [...PF_ITEMS.map(i=>r.answers[i.id]), r.scores.EI, r.scores.SN, r.scores.TF, r.scores.JP, r.type, r.testVersion];
+}
+function pfBarsHtml(r){
+  return PF_DIMS.map(d=>{
+    const s = r.scores[d];
+    const w = Math.abs(s)/24*50;
+    const left = s>0 ? 50-w : 50;
+    return `<div class="pf-bar-row"><span class="pf-pole">${PF_POLES[d][0]}</span>
+      <div class="pf-track"><div class="pf-mid"></div><div class="pf-fill" style="left:${left}%;width:${w}%;"></div></div>
+      <span class="pf-pole">${PF_POLES[d][1]}</span>
+      <span class="pf-bar-txt">${d} ${pfSigned(s)} ${pfStrength(s)}</span></div>`;
+  }).join("");
+}
+function pfProfileHtml(type){
+  const p = PF_PROFILES && PF_PROFILES[type];
+  if(!p) return "";
+  const blocks = p.blocks.map(b=>`<div class="pf-sub"><h4>${pfEsc(b.h)}</h4>${b.p ? `<p>${pfEsc(b.p)}</p>` : ""}${b.ul ? `<ul>${b.ul.map(x=>`<li>${pfEsc(x)}</li>`).join("")}</ul>` : ""}</div>`).join("");
+  const jobs = `<div class="pf-sub"><h4>Pekerjaan yang sering cocok</h4>${p.jobs.map(j=>`<p style="margin-bottom:2px;"><b>${pfEsc(j.h)}</b></p><ul>${j.items.map(x=>`<li>${pfEsc(x)}</li>`).join("")}</ul>`).join("")}${p.jobNote ? `<p style="margin-top:6px;">${pfEsc(p.jobNote)}</p>` : ""}</div>`;
+  return `<div class="pf-profile"><h3 style="margin:14px 0 2px;">${pfEsc(p.title)}</h3><p>${pfEsc(p.sub)}</p>${blocks}${jobs}
+    <div class="pf-sub"><h4>Kurang cocok</h4><p>${pfEsc(p.avoid)}</p></div><p style="margin-top:8px;font-style:italic;">${pfEsc(p.note)}</p></div>`;
+}
+function pfSectionHtml(id, forPrint){
+  const r = PROFILING_BY_ID[id];
+  const wrapOpen = forPrint ? '<div class="pf-section"><h3>Profiling Test</h3>' : '<h3>Profiling Test</h3><div>';
+  if(!r) return forPrint ? "" : `${wrapOpen}<p class="muted-note">Profiling Test belum diselesaikan peserta ini.</p></div>`;
+  const hasX = r.type.includes("X");
+  return `${wrapOpen}
+    <div class="pf-type">${pfEsc(r.type)}</div>
+    ${pfBarsHtml(r)}
+    <div class="pf-disclaimer">Bukan MBTI resmi, belum tervalidasi, tidak boleh jadi satu-satunya dasar keputusan. Gunakan untuk bahan diskusi.</div>
+    ${hasX ? '<p class="muted-note">Tipe mengandung X (skor 0 pada satu dimensi atau lebih), sehingga tidak ada profil lengkap.</p>' : pfProfileHtml(r.type)}
+  </div>`;
+}
 
 // ---------------- Tabs ----------------
 document.querySelectorAll(".tab-btn").forEach(btn=>{
@@ -805,6 +1113,7 @@ function enterCandidateMode(){
   document.getElementById("f-stage").value = "Initial Screening";
   document.getElementById("f-assessor").value = "";
   assessmentStartTime = new Date().toISOString();
+  pfResumeIfPending();
 }
 
 async function enterAdminMode(){
@@ -948,6 +1257,7 @@ function renderDashboard(){
       <td>${new Date(e.date).toLocaleDateString("en-US")}</td>
       <td><b>${e.total}</b>/100</td>
       <td><span class="badge ${rec.cls}">${rec.label}</span></td>
+      <td>${pfSummaryCell(e)}</td>
       <td><button class="btn btn-outline btn-sm detail-btn" data-id="${e.id}">Details</button>
           <button class="btn-danger btn-sm del-btn" data-id="${e.id}" style="border-radius:6px;margin-left:6px;">Delete</button></td>
     `;
@@ -1031,6 +1341,7 @@ function openDetail(id){
     qSection.style.display = "none";
   }
 
+  document.getElementById("modal-profiling").innerHTML = pfSectionHtml(e.id);
   document.getElementById("modal-bg").classList.add("active");
   document.getElementById("modal-print").onclick = ()=>printSummary(e);
 }
@@ -1071,6 +1382,7 @@ function printSummary(e){
   const chartImg = printCanvas.toDataURL("image/png");
   printChart.destroy();
   document.body.removeChild(printCanvas);
+  const pfPrintHtml = pfSectionHtml(e.id, true);
   const w = window.open("", "_blank");
   w.document.write(`
     <html><head><title>Report - ${e.name}</title>
@@ -1095,6 +1407,19 @@ function printSummary(e){
     li{break-inside:avoid;page-break-inside:avoid;}
     .cols{display:flex;gap:30px;break-inside:avoid;page-break-inside:avoid;}
     .cols>div{flex:1;}
+    .pf-section{break-before:page;page-break-before:always;}
+    .pf-type{font-size:26px;font-weight:800;letter-spacing:3px;color:#171510;margin:4px 0 8px;}
+    .pf-bar-row{display:grid;grid-template-columns:20px 1fr 20px 170px;gap:8px;align-items:center;margin:7px 0;font-size:12.5px;break-inside:avoid;page-break-inside:avoid;}
+    .pf-pole{text-align:center;font-weight:700;color:#8a6d2f;}
+    .pf-track{position:relative;height:11px;background:#f1ede1;border:1px solid #d8cfb5;border-radius:6px;}
+    .pf-mid{position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:#555;}
+    .pf-fill{position:absolute;top:0;bottom:0;background:#CAAE65;border-radius:6px;}
+    .pf-disclaimer{background:#faf8f3;border-left:3px solid #CAAE65;padding:8px 12px;font-size:12px;color:#555;margin:10px 0 12px;}
+    .pf-profile h4{margin:12px 0 3px;color:#8a6d2f;font-size:13px;break-after:avoid;page-break-after:avoid;}
+    .pf-profile p{font-size:12.5px;margin:0 0 6px;}
+    .pf-profile ul{margin:0;}
+    .pf-sub{break-inside:avoid;page-break-inside:avoid;}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     @media print{
       body{padding:0;max-width:100%;}
     }
@@ -1117,6 +1442,7 @@ function printSummary(e){
     <h3>Core Value Breakdown</h3>
     <table><thead><tr><th>Core Value</th><th>Score</th><th>Category</th><th>Interpretation</th></tr></thead><tbody>${rows}</tbody></table>
     ${questionsHtml}
+    ${pfPrintHtml}
     <p style="margin-top:24px;font-size:11px;color:#666;">Midas Talent Match — Internal Use Only</p>
     </body></html>`);
   w.document.close();
@@ -1142,17 +1468,18 @@ function printSummary(e){
 document.getElementById("export-csv").addEventListener("click", ()=>{
   const data = getFiltered();
   if(!data.length){ alert("No data available to export."); return; }
-  const header = ["Name","Gender","Role","Email","Stage","Start Time","Submit Time","Duration (min)","Assessor", ...VALUES.map(v=>v.label), "Total Score","Recommendation"];
+  const header = ["Name","Gender","Role","Email","Stage","Start Time","Submit Time","Duration (min)","Assessor", ...VALUES.map(v=>v.label), "Total Score","Recommendation", ...PF_ITEMS.map(i=>i.id), "Profiling EI","Profiling SN","Profiling TF","Profiling JP","Profiling Type","Profiling Test Version"];
   const rows = data.map(e=>{
     const durationMin = (e.startedAt && e.date) ? Math.max(0, Math.round((new Date(e.date) - new Date(e.startedAt))/60000)) : "";
     return [
       e.name, e.gender||"", e.role, e.email, e.stage,
       e.startedAt ? new Date(e.startedAt).toLocaleString("en-US") : "",
       new Date(e.date).toLocaleString("en-US"), durationMin, e.assessor,
-      ...VALUES.map(v=>e.valueScores[v.key]), e.total, getRecommendation(e).label
+      ...VALUES.map(v=>e.valueScores[v.key]), e.total, getRecommendation(e).label,
+      ...pfCsvCells(e.id)
     ];
   });
-  const csv = [header, ...rows].map(r=>r.map(x=>`"${String(x||"").replace(/"/g,'""')}"`).join(",")).join("\n");
+  const csv = [header, ...rows].map(r=>r.map(x=>`"${String(x==null?"":x).replace(/"/g,'""')}"`).join(",")).join("\n");
   const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
