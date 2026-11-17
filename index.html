@@ -136,10 +136,11 @@
   .pf-fill{position:absolute;top:0;bottom:0;background:var(--gold);border-radius:6px;}
   .pf-type{font-size:30px;font-weight:800;letter-spacing:3px;color:var(--gold);margin:4px 0 8px;}
   .pf-disclaimer{background:var(--card-alt);border-left:3px solid var(--amber);padding:8px 12px;font-size:12.5px;color:var(--muted);margin:10px 0 14px;}
+  .pf-cols{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;}
   .pf-profile h4{margin:14px 0 4px;color:var(--gold);font-size:13.5px;}
   .pf-profile ul{margin:0;padding-left:18px;font-size:13px;line-height:1.6;}
   .pf-profile p{font-size:13px;line-height:1.6;margin:0 0 6px;}
-  @media (max-width:720px){.pf-bar-row{grid-template-columns:20px 1fr 20px;}.pf-bar-txt{grid-column:1 / -1;}}
+  @media (max-width:720px){.pf-cols{grid-template-columns:1fr;}.pf-bar-row{grid-template-columns:20px 1fr 20px;}.pf-bar-txt{grid-column:1 / -1;}}
   .success-banner{background:var(--green-bg);color:var(--green);border:1px solid rgba(52,211,153,0.35);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:14px;font-weight:600;display:none;}
 </style>
 </head>
@@ -310,7 +311,7 @@
           </thead>
           <tbody id="table-body"></tbody>
         </table>
-        <p class="footer-note" style="text-align:left;margin-top:12px;">Profiling Test: bukan MBTI resmi, belum tervalidasi, tidak boleh jadi satu-satunya dasar keputusan. Gunakan untuk bahan diskusi.</p>
+        <p class="footer-note" style="text-align:left;margin-top:12px;">Profiling Test: not an official MBTI, not validated, must not be the sole basis for a decision. Use as a discussion aid.</p>
         <div class="empty" id="empty-state">No data yet. Complete an assessment in the "Isi Assessment" tab to start collecting data.</div>
       </div>
     </div>
@@ -851,10 +852,10 @@ const PF_DIMS = ["EI","SN","TF","JP"];
 const PF_VALUE_MAP = { 1:-3, 2:-1, 3:1, 4:3 };
 function pfStrength(score){
   const a = Math.abs(score);
-  if(a===0) return "seimbang";
-  if(a<=6) return "tipis";
-  if(a<=16) return "sedang";
-  return "jelas";
+  if(a===0) return "balanced";
+  if(a<=6) return "slight";
+  if(a<=16) return "moderate";
+  return "clear";
 }
 // answers: { q01: 1..4, ... q32 }. Dimension score range -24..+24.
 function pfScore(answers){
@@ -1050,21 +1051,26 @@ function pfBarsHtml(r){
 function pfProfileHtml(type){
   const p = PF_PROFILES && PF_PROFILES[type];
   if(!p) return "";
-  const blocks = p.blocks.map(b=>`<div class="pf-sub"><h4>${pfEsc(b.h)}</h4>${b.p ? `<p>${pfEsc(b.p)}</p>` : ""}${b.ul ? `<ul>${b.ul.map(x=>`<li>${pfEsc(x)}</li>`).join("")}</ul>` : ""}</div>`).join("");
-  const jobs = `<div class="pf-sub"><h4>Pekerjaan yang sering cocok</h4>${p.jobs.map(j=>`<p style="margin-bottom:2px;"><b>${pfEsc(j.h)}</b></p><ul>${j.items.map(x=>`<li>${pfEsc(x)}</li>`).join("")}</ul>`).join("")}${p.jobNote ? `<p style="margin-top:6px;">${pfEsc(p.jobNote)}</p>` : ""}</div>`;
-  return `<div class="pf-profile"><h3 style="margin:14px 0 2px;">${pfEsc(p.title)}</h3><p>${pfEsc(p.sub)}</p>${blocks}${jobs}
-    <div class="pf-sub"><h4>Kurang cocok</h4><p>${pfEsc(p.avoid)}</p></div><p style="margin-top:8px;font-style:italic;">${pfEsc(p.note)}</p></div>`;
+  const list = b => `<div class="pf-sub"><h4>${pfEsc(b.h)}</h4>${b.p ? `<p>${pfEsc(b.p)}</p>` : ""}${b.ul ? `<ul>${b.ul.map(x=>`<li>${pfEsc(x)}</li>`).join("")}</ul>` : ""}</div>`;
+  const pair = (a,b) => `<div class="pf-cols">${list(a)}${list(b)}</div>`;
+  const B = p.blocks;
+  const jobs = `<div class="pf-sub"><h4>Roles often suggested for this type</h4><div class="pf-cols">${p.jobs.map(j=>`<div class="pf-sub"><p style="margin-bottom:2px;"><b>${pfEsc(j.h)}</b></p><ul>${j.items.map(x=>`<li>${pfEsc(x)}</li>`).join("")}</ul></div>`).join("")}</div>${p.jobNote ? `<p style="margin-top:6px;"><b>Job note:</b> ${pfEsc(p.jobNote)}</p>` : ""}</div>`;
+  const avoid = String(p.avoid||"").replace(/^Less suitable:\s*/i,"");
+  const avoidText = avoid.charAt(0).toUpperCase() + avoid.slice(1);
+  return `<div class="pf-profile"><h3 style="margin:14px 0 2px;">${pfEsc(p.title)}</h3><p>${pfEsc(p.sub)}</p>
+    ${list(B[0])}${list(B[1])}${pair(B[2],B[3])}${pair(B[4],B[5])}${jobs}
+    <div class="pf-sub"><h4>Less suitable</h4><p>${pfEsc(avoidText)}</p></div><p style="margin-top:8px;font-style:italic;">${pfEsc(p.note)}</p></div>`;
 }
 function pfSectionHtml(id, forPrint){
   const r = PROFILING_BY_ID[id];
   const wrapOpen = forPrint ? '<div class="pf-section"><h3>Profiling Test</h3>' : '<h3>Profiling Test</h3><div>';
-  if(!r) return forPrint ? "" : `${wrapOpen}<p class="muted-note">Profiling Test belum diselesaikan peserta ini.</p><input type="text" id="pf-link-input" readonly value="${pfEsc(location.origin + "/?pt=" + encodeURIComponent(id))}" style="margin-bottom:8px;"><button class="btn btn-outline btn-sm" id="pf-copy-link">Salin link Profiling</button><p class="muted-note" style="margin-top:6px;">Link pribadi untuk peserta ini. Kirim langsung ke orangnya; hanya kiriman pertama yang tersimpan.</p></div>`;
+  if(!r) return forPrint ? "" : `${wrapOpen}<p class="muted-note">This participant has not completed the Profiling Test.</p><input type="text" id="pf-link-input" readonly value="${pfEsc(location.origin + "/?pt=" + encodeURIComponent(id))}" style="margin-bottom:8px;"><button class="btn btn-outline btn-sm" id="pf-copy-link">Copy Profiling link</button><p class="muted-note" style="margin-top:6px;">Personal link for this participant. Send it directly to them; only the first submission is saved.</p></div>`;
   const hasX = r.type.includes("X");
   return `${wrapOpen}
     <div class="pf-type">${pfEsc(r.type)}</div>
     ${pfBarsHtml(r)}
-    <div class="pf-disclaimer">Bukan MBTI resmi, belum tervalidasi, tidak boleh jadi satu-satunya dasar keputusan. Gunakan untuk bahan diskusi.</div>
-    ${hasX ? '<p class="muted-note">Tipe mengandung X (skor 0 pada satu dimensi atau lebih), sehingga tidak ada profil lengkap.</p>' : pfProfileHtml(r.type)}
+    <div class="pf-disclaimer">Not an official MBTI, not validated, must not be the sole basis for a decision. Use as a discussion aid.</div>
+    ${hasX ? '<p class="muted-note">The type contains an X (a score of 0 on one or more dimensions), so there is no full profile.</p>' : pfProfileHtml(r.type)}
   </div>`;
 }
 
@@ -1383,8 +1389,8 @@ function openDetail(id){
       let ok = false;
       try{ await navigator.clipboard.writeText(linkInput.value); ok = true; }catch(err){}
       if(!ok){ try{ ok = document.execCommand("copy"); }catch(err){} }
-      copyBtn.textContent = ok ? "Link tersalin" : "Blok link di atas lalu Cmd/Ctrl+C";
-      setTimeout(()=>{ copyBtn.textContent = "Salin link Profiling"; }, 2500);
+      copyBtn.textContent = ok ? "Link copied" : "Select the link above, then press Cmd/Ctrl+C";
+      setTimeout(()=>{ copyBtn.textContent = "Copy Profiling link"; }, 2500);
     };
   }
   document.getElementById("modal-bg").classList.add("active");
@@ -1464,6 +1470,7 @@ function printSummary(e){
     .pf-profile p{font-size:12.5px;margin:0 0 6px;}
     .pf-profile ul{margin:0;}
     .pf-sub{break-inside:avoid;page-break-inside:avoid;}
+    .pf-cols{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;break-inside:avoid;page-break-inside:avoid;}
     *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     @media print{
       body{padding:0;max-width:100%;}
